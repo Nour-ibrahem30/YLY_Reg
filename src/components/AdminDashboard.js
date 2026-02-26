@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
@@ -23,15 +23,7 @@ function AdminDashboard() {
 
   const committees = ['PR', 'HR', 'R&D', 'Social Media', 'OR'];
 
-  useEffect(() => {
-    fetchAllUsers();
-  }, []);
-
-  useEffect(() => {
-    filterUsers();
-  }, [searchTerm, filterGovernorate, filterCommittee, allUsers]);
-
-  const fetchAllUsers = async () => {
+  const fetchAllUsers = useCallback(async () => {
     setLoading(true);
     try {
       const users = [];
@@ -54,9 +46,9 @@ function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [governorates]);
 
-  const filterUsers = () => {
+  const filterUsers = useCallback(() => {
     let filtered = [...allUsers];
 
     // فلترة بالبحث
@@ -80,7 +72,15 @@ function AdminDashboard() {
     }
 
     setFilteredUsers(filtered);
-  };
+  }, [allUsers, searchTerm, filterGovernorate, filterCommittee]);
+
+  useEffect(() => {
+    fetchAllUsers();
+  }, [fetchAllUsers]);
+
+  useEffect(() => {
+    filterUsers();
+  }, [filterUsers]);
 
   const exportToCSV = () => {
     const headers = ['الاسم', 'البريد الإلكتروني', 'رقم الهاتف', 'رقم الهوية', 'المحافظة', 'اللجنة', 'تاريخ التسجيل'];
