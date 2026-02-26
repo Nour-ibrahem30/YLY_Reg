@@ -8,41 +8,54 @@ function AdminDashboard() {
   const [allUsers, setAllUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGovernorate, setFilterGovernorate] = useState('');
   const [filterCommittee, setFilterCommittee] = useState('');
 
-  const governorates = [
+  // Move arrays outside to prevent re-creation
+  const governorates = React.useMemo(() => [
     'القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'البحر الأحمر',
     'البحيرة', 'الفيوم', 'الغربية', 'الإسماعيلية', 'المنوفية',
     'المنيا', 'القليوبية', 'الوادي الجديد', 'الشرقية', 'السويس',
     'أسوان', 'أسيوط', 'بني سويف', 'بورسعيد', 'دمياط',
     'الأقصر', 'قنا', 'كفر الشيخ', 'مطروح', 'شمال سيناء',
     'جنوب سيناء', 'سوهاج'
-  ];
+  ], []);
 
-  const committees = ['PR', 'HR', 'R&D', 'Social Media', 'OR'];
+  const committees = React.useMemo(() => ['PR', 'HR', 'R&D', 'Social Media', 'OR'], []);
 
   const fetchAllUsers = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const users = [];
       
+      console.log('Starting to fetch data from', governorates.length, 'governorates...');
+      
       // جلب البيانات من كل محافظة
       for (const gov of governorates) {
-        const querySnapshot = await getDocs(collection(db, gov));
-        querySnapshot.forEach((doc) => {
-          users.push({
-            id: doc.id,
-            ...doc.data()
+        try {
+          const querySnapshot = await getDocs(collection(db, gov));
+          console.log(`Fetched ${querySnapshot.size} users from ${gov}`);
+          querySnapshot.forEach((doc) => {
+            users.push({
+              id: doc.id,
+              ...doc.data()
+            });
           });
-        });
+        } catch (govError) {
+          console.warn(`Error fetching from ${gov}:`, govError);
+          // Continue with other governorates even if one fails
+        }
       }
       
+      console.log('Total users fetched:', users.length);
       setAllUsers(users);
       setFilteredUsers(users);
     } catch (error) {
       console.error('Error fetching users:', error);
+      setError('حدث خطأ في تحميل البيانات. تأكد من صلاحيات Firebase.');
     } finally {
       setLoading(false);
     }
@@ -76,7 +89,7 @@ function AdminDashboard() {
 
   useEffect(() => {
     fetchAllUsers();
-  }, [fetchAllUsers]);
+  }, []); // Empty dependency array - only run once
 
   useEffect(() => {
     filterUsers();
@@ -126,7 +139,39 @@ function AdminDashboard() {
   if (loading) {
     return (
       <div className="admin-page">
-        <div className="loading">جاري تحميل البيانات...</div>
+        <div className="loading">
+          <div className="loading-spinner"></div>
+          <p style={{ marginTop: '20px' }}>جاري تحميل البيانات من Firebase...</p>
+          <p style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: '10px' }}>قد يستغرق هذا بضع ثوانٍ</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="admin-page">
+        <div className="admin-container">
+          <div className="error-message" style={{ marginTop: '100px', padding: '30px', fontSize: '1.1rem' }}>
+            <p>{error}</p>
+            <button 
+              onClick={fetchAllUsers} 
+              style={{ 
+                marginTop: '20px', 
+                padding: '12px 24px', 
+                background: '#0066ff', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontFamily: 'Cairo, sans-serif',
+                fontWeight: '600'
+              }}
+            >
+              إعادة المحاولة
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
