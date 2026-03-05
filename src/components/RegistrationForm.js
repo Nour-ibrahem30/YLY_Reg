@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
-import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie, FaArrowLeft } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie, FaArrowLeft, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function RegistrationForm() {
   const navigate = useNavigate();
@@ -15,7 +15,9 @@ function RegistrationForm() {
     id: location.state?.userId || '',
     governorate: '',
     committee: '',
-    role: ''
+    role: '',
+    password: '',
+    confirmPassword: ''
   });
 
   const governorates = [
@@ -67,6 +69,8 @@ function RegistrationForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // دالة للتحقق من وجود تسجيل سابق
   const handleChange = (e) => {
@@ -102,8 +106,21 @@ function RegistrationForm() {
     setError('');
     setSuccess('');
 
-    if (!formData.name || !formData.email || !formData.number || !formData.id || !formData.governorate || !formData.committee) {
+    if (!formData.name || !formData.email || !formData.number || !formData.id || !formData.governorate || !formData.committee || !formData.password) {
       setError('الرجاء ملء جميع الحقول');
+      setLoading(false);
+      return;
+    }
+
+    // التحقق من كلمة المرور
+    if (formData.password.length < 6) {
+      setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('كلمة المرور غير متطابقة');
       setLoading(false);
       return;
     }
@@ -124,21 +141,34 @@ function RegistrationForm() {
     }
 
     try {
-      // التحقق السريع من التكرار في نفس المحافظة فقط
-      const q = query(
-        collection(db, formData.governorate),
+      // التحقق من التكرار في pending_registrations
+      const pendingQ = query(
+        collection(db, 'pending_registrations'),
         where('userId', '==', formData.id)
       );
-      const querySnapshot = await getDocs(q);
+      const pendingSnapshot = await getDocs(pendingQ);
       
-      if (!querySnapshot.empty) {
-        setError('رقم الهوية هذا مسجل بالفعل في هذه المحافظة.');
+      if (!pendingSnapshot.empty) {
+        setError('رقم الهوية هذا مسجل بالفعل وفي انتظار الموافقة.');
         setLoading(false);
         return;
       }
 
-      // إضافة المستخدم مباشرة
-      const docRef = await addDoc(collection(db, formData.governorate), {
+      // التحقق من التكرار في users (المستخدمين المعتمدين)
+      const usersQ = query(
+        collection(db, 'users'),
+        where('userId', '==', formData.id)
+      );
+      const usersSnapshot = await getDocs(usersQ);
+      
+      if (!usersSnapshot.empty) {
+        setError('رقم الهوية هذا مسجل بالفعل ومعتمد. يمكنك تسجيل الدخول.');
+        setLoading(false);
+        return;
+      }
+
+      // إضافة المستخدم في pending_registrations
+      const docRef = await addDoc(collection(db, 'pending_registrations'), {
         name: formData.name,
         email: formData.email,
         number: formData.number,
@@ -146,21 +176,16 @@ function RegistrationForm() {
         governorate: formData.governorate,
         committee: formData.committee,
         role: formData.role,
+        password: formData.password,
+        status: 'pending',
         createdAt: new Date().toISOString()
       });
 
-      setSuccess('تم التسجيل بنجاح!');
-      
-      // حفظ معلومات البروفايل في sessionStorage
-      sessionStorage.setItem('yly_profile', JSON.stringify({
-        id: docRef.id,
-        governorate: formData.governorate,
-        name: formData.name
-      }));
+      setSuccess('تم التسجيل بنجاح! في انتظار موافقة الإدارة.');
       
       setTimeout(() => {
-        navigate(`/profile/${formData.governorate}/${docRef.id}`);
-      }, 1500);
+        navigate('/');
+      }, 2000);
 
     } catch (err) {
       console.error('Error adding document: ', err);
@@ -408,6 +433,92 @@ function RegistrationForm() {
                 </option>
               ))}
             </select>
+          </motion.div>
+
+          <motion.div className="form-group" variants={itemVariants}>
+            <label htmlFor="password">
+              <FaLock className="input-icon" />
+              كلمة المرور (6 أحرف على الأقل)
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="أدخل كلمة المرور"
+                disabled={loading}
+                dir="ltr"
+                style={{ paddingLeft: '45px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  left: '15px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  fontSize: '1.1rem',
+                  padding: '5px'
+                }}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+          </motion.div>
+
+          <motion.div className="form-group" variants={itemVariants}>
+            <label htmlFor="confirmPassword">
+              <FaLock className="input-icon" />
+              تأكيد كلمة المرور
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="أعد إدخال كلمة المرور"
+                disabled={loading}
+                dir="ltr"
+                style={{ paddingLeft: '45px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  left: '15px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  fontSize: '1.1rem',
+                  padding: '5px'
+                }}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+              <small style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '5px', display: 'block' }}>
+                كلمة المرور غير متطابقة
+              </small>
+            )}
+            {formData.password && formData.confirmPassword && formData.password === formData.confirmPassword && (
+              <small style={{ color: '#10b981', fontSize: '0.85rem', marginTop: '5px', display: 'block' }}>
+                ✓ كلمة المرور متطابقة
+              </small>
+            )}
           </motion.div>
 
           <motion.button 

@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './components/Login';
 import RegistrationForm from './components/RegistrationForm';
 import Profile from './components/Profile';
 import AdminDashboard from './components/AdminDashboard';
+import PendingRegistrations from './components/PendingRegistrations';
 import QRScanner from './components/QRScanner';
 import EventsManagement from './components/EventsManagement';
 import AttendanceLogs from './components/AttendanceLogs';
@@ -11,7 +12,6 @@ import './App.css';
 import './AdminStyles.css';
 
 function App() {
-
   return (
     <Router>
       <div className="App">
@@ -20,6 +20,7 @@ function App() {
           <Route path="/register" element={<RegistrationForm />} />
           <Route path="/profile/:governorate/:id" element={<Profile />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/pending" element={<PendingRegistrations />} />
           <Route path="/admin/scanner" element={<QRScanner />} />
           <Route path="/admin/events" element={<EventsManagement />} />
           <Route path="/admin/attendance" element={<AttendanceLogs />} />

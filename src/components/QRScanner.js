@@ -103,11 +103,11 @@ function QRScanner() {
         return;
       }
 
-      // Fetch user data from Firestore
-      const userDoc = await getDoc(doc(db, userInfo.governorate, userInfo.userId));
+      // Fetch user data from users collection
+      const userDoc = await getDoc(doc(db, 'users', userInfo.userId));
       
       if (!userDoc.exists()) {
-        setMessage({ type: 'error', text: 'المستخدم غير موجود' });
+        setMessage({ type: 'error', text: 'المستخدم غير موجود أو غير معتمد' });
         setLoading(false);
         setTimeout(() => startScanner(), 2000);
         return;
@@ -130,7 +130,7 @@ function QRScanner() {
         setScannedUser({
           ...userData,
           id: userInfo.userId,
-          governorate: userInfo.governorate
+          governorate: userData.governorate
         });
         setMessage({ type: 'success', text: 'تم تسجيل الحضور بنجاح!' });
         
@@ -145,7 +145,7 @@ function QRScanner() {
           setScannedUser({
             ...userData,
             id: userInfo.userId,
-            governorate: userInfo.governorate,
+            governorate: userData.governorate,
             duplicate: true
           });
         } else {
@@ -176,8 +176,7 @@ function QRScanner() {
       if (qrData.includes('/profile/')) {
         const parts = qrData.split('/');
         const userId = parts[parts.length - 1];
-        const governorate = parts[parts.length - 2];
-        return { userId, governorate, success: true };
+        return { userId, success: true };
       }
       
       return { success: false };

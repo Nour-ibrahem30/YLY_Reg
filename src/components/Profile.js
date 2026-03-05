@@ -16,8 +16,9 @@ function Profile() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        console.log('Fetching data for:', governorate, id);
-        const docRef = doc(db, governorate, id);
+        console.log('Fetching data for user ID:', id);
+        // البحث في users collection
+        const docRef = doc(db, 'users', id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -36,13 +37,13 @@ function Profile() {
       }
     };
 
-    if (governorate && id) {
+    if (id) {
       fetchUserData();
     } else {
       setError('معلومات غير كاملة');
       setLoading(false);
     }
-  }, [governorate, id]);
+  }, [id]);
 
   const getInitials = (name) => {
     return name

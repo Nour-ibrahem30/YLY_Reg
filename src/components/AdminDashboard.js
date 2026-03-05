@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
-import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaCalendar, FaSearch, FaDownload, FaQrcode, FaCalendarAlt, FaClipboardList } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaCalendar, FaSearch, FaDownload, FaQrcode, FaCalendarAlt, FaClipboardList, FaUserClock } from 'react-icons/fa';
 
 function AdminDashboard() {
   const [allUsers, setAllUsers] = useState([]);
@@ -213,6 +213,24 @@ function AdminDashboard() {
                 <FaCalendarAlt /> إدارة الفعاليات
               </Link>
               <Link 
+                to="/admin/pending" 
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <FaUserClock /> طلبات التسجيل
+              </Link>
+              <Link 
                 to="/admin/attendance" 
                 style={{
                   padding: '12px 24px',
@@ -336,6 +354,24 @@ function AdminDashboard() {
               }}
             >
               <FaCalendarAlt /> إدارة الفعاليات
+            </Link>
+            <Link 
+              to="/admin/pending" 
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '10px',
+                fontWeight: '700',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <FaUserClock /> طلبات التسجيل
             </Link>
             <Link 
               to="/admin/attendance" 

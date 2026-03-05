@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
-import { FaIdCard, FaUser, FaSignInAlt } from 'react-icons/fa';
+import { FaIdCard, FaUser, FaSignInAlt, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function Login() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const governorates = [
     'القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'البحر الأحمر',
@@ -31,38 +33,48 @@ function Login() {
       return;
     }
 
+    if (!password || password.length < 6) {
+      setError('الرجاء إدخال كلمة المرور (6 أحرف على الأقل)');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // البحث في كل المحافظات بشكل متوازي (أسرع)
-      const searchPromises = governorates.map(async (gov) => {
-        const q = query(
-          collection(db, gov),
+      // البحث في users (المستخدمين المعتمدين)
+      const usersQ = query(
+        collection(db, 'users'),
+        where('userId', '==', userId)
+      );
+      const usersSnapshot = await getDocs(usersQ);
+
+      if (!usersSnapshot.empty) {
+        const userData = usersSnapshot.docs[0].data();
+        const userDocId = usersSnapshot.docs[0].id;
+        
+        // التحقق من كلمة المرور
+        if (userData.password === password) {
+          // تسجيل دخول ناجح - التوجيه للبروفايل
+          navigate(`/profile/${userData.governorate}/${userDocId}`);
+        } else {
+          setError('كلمة المرور غير صحيحة');
+        }
+      } else {
+        // التحقق من pending_registrations
+        const pendingQ = query(
+          collection(db, 'pending_registrations'),
           where('userId', '==', userId)
         );
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          return {
-            found: true,
-            governorate: gov,
-            docId: querySnapshot.docs[0].id
-          };
+        const pendingSnapshot = await getDocs(pendingQ);
+
+        if (!pendingSnapshot.empty) {
+          setError('حسابك في انتظار موافقة الإدارة. سيتم إعلامك عند الموافقة.');
+        } else {
+          // المستخدم غير موجود - توجيه للتسجيل
+          setError('رقم الهوية غير مسجل. سيتم توجيهك لصفحة التسجيل...');
+          setTimeout(() => {
+            navigate('/register', { state: { userId } });
+          }, 1500);
         }
-        return { found: false };
-      });
-
-      // تنفيذ كل البحث في نفس الوقت
-      const results = await Promise.all(searchPromises);
-      const userResult = results.find(r => r.found);
-
-      if (userResult) {
-        // المستخدم موجود - توجيه للبروفايل
-        navigate(`/profile/${userResult.governorate}/${userResult.docId}`);
-      } else {
-        // المستخدم غير موجود - توجيه للتسجيل
-        setError('رقم الهوية غير مسجل. سيتم توجيهك لصفحة التسجيل...');
-        setTimeout(() => {
-          navigate('/register', { state: { userId } });
-        }, 1500);
       }
     } catch (err) {
       console.error('Error during login:', err);
@@ -201,10 +213,61 @@ function Login() {
               )}
             </motion.div>
 
+            <motion.div 
+              className="form-group"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <label htmlFor="password">
+                <FaLock className="input-icon" />
+                كلمة المرور
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError('');
+                  }}
+                  placeholder="أدخل كلمة المرور"
+                  disabled={loading}
+                  dir="ltr"
+                  style={{ paddingLeft: '45px' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    left: '15px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#6b7280',
+                    fontSize: '1.1rem',
+                    padding: '5px'
+                  }}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+              {password && password.length < 6 && (
+                <small style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '5px', display: 'block' }}>
+                  كلمة المرور يجب أن تكون 6 أحرف على الأقل
+                </small>
+              )}
+            </motion.div>
+
             <motion.button 
               type="submit" 
               className="submit-btn" 
-              disabled={loading || userId.length !== 14}
+              disabled={loading || userId.length !== 14 || password.length < 6}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ scale: 1.02 }}
