@@ -4,6 +4,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { QRCodeSVG } from 'qrcode.react';
 import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaCalendar, FaDownload, FaArrowLeft } from 'react-icons/fa';
+import UserEvents from './UserEvents';
+import UserTasks from './UserTasks';
 
 function Profile() {
   const { governorate, id } = useParams();
@@ -73,7 +75,7 @@ function Profile() {
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
-  const profileUrl = window.location.href;
+  const profileUrl = `${window.location.origin}/profile/${governorate}/${id}`;
 
   if (loading) {
     return (
@@ -231,6 +233,13 @@ function Profile() {
               <div style={{ color: '#1f2937', fontWeight: '600', fontSize: '1.1rem' }}>{userData.committee}</div>
             </div>
 
+            <div style={{ padding: '24px', background: 'rgba(255, 255, 255, 0.8)', borderRadius: '16px', border: '2px solid #e6f0ff' }}>
+              <div style={{ fontWeight: '700', color: '#0099ff', fontSize: '0.85rem', marginBottom: '8px' }}>
+                <FaUser style={{ marginLeft: '5px' }} /> الدور الوظيفي
+              </div>
+              <div style={{ color: '#1f2937', fontWeight: '600', fontSize: '1.1rem' }}>{userData.role || 'غير محدد'}</div>
+            </div>
+
             <div style={{ padding: '24px', background: 'rgba(255, 255, 255, 0.8)', borderRadius: '16px', border: '2px solid #e6f0ff', gridColumn: 'span 2' }}>
               <div style={{ fontWeight: '700', color: '#0099ff', fontSize: '0.85rem', marginBottom: '8px' }}>
                 <FaCalendar style={{ marginLeft: '5px' }} /> تاريخ التسجيل
@@ -293,6 +302,12 @@ function Profile() {
             العودة للصفحة الرئيسية
           </Link>
         </div>
+
+        {/* User Events Section */}
+        <UserEvents userId={id} />
+
+        {/* User Tasks Section */}
+        <UserTasks userId={id} userInfo={userData} />
       </div>
     </div>
   );

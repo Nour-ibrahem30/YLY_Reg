@@ -283,6 +283,11 @@
   color: #065f46;
 }
 
+.badge-role {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .no-data {
   text-align: center;
   padding: 60px;

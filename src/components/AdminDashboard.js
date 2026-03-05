@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
-import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaCalendar, FaSearch, FaDownload } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaCalendar, FaSearch, FaDownload, FaQrcode, FaCalendarAlt, FaClipboardList } from 'react-icons/fa';
 
 function AdminDashboard() {
   const [allUsers, setAllUsers] = useState([]);
@@ -96,7 +97,7 @@ function AdminDashboard() {
   }, [filterUsers]);
 
   const exportToCSV = () => {
-    const headers = ['الاسم', 'البريد الإلكتروني', 'رقم الهاتف', 'رقم الهوية', 'المحافظة', 'اللجنة', 'تاريخ التسجيل'];
+    const headers = ['الاسم', 'البريد الإلكتروني', 'رقم الهاتف', 'رقم الهوية', 'المحافظة', 'اللجنة', 'الدور الوظيفي', 'تاريخ التسجيل'];
     const csvData = filteredUsers.map(user => [
       user.name,
       user.email,
@@ -104,6 +105,7 @@ function AdminDashboard() {
       user.userId,
       user.governorate,
       user.committee,
+      user.role || 'غير محدد',
       new Date(user.createdAt).toLocaleDateString('ar-EG')
     ]);
 
@@ -184,8 +186,90 @@ function AdminDashboard() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1>لوحة تحكم الأدمن</h1>
-          <p>إدارة أعضاء YLY</p>
+          <div>
+            <h1>لوحة تحكم الأدمن</h1>
+            <p>إدارة أعضاء YLY</p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <Link 
+              to="/admin/events" 
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '10px',
+                fontWeight: '700',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+              }}
+            >
+              <FaCalendarAlt /> إدارة الفعاليات
+            </Link>
+            <Link 
+              to="/admin/attendance" 
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '10px',
+                fontWeight: '700',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)';
+              }}
+            >
+              <FaClipboardList /> سجلات الحضور
+            </Link>
+            <Link 
+              to="/admin/scanner" 
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #0066ff 0%, #00ccff 100%)',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '10px',
+                fontWeight: '700',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(0, 153, 255, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 16px rgba(0, 153, 255, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 12px rgba(0, 153, 255, 0.3)';
+              }}
+            >
+              <FaQrcode /> ماسح QR
+            </Link>
+          </div>
         </motion.div>
 
         {/* Statistics Cards */}
@@ -301,6 +385,7 @@ function AdminDashboard() {
                     <th><FaIdCard /> رقم الهوية</th>
                     <th><FaMapMarkerAlt /> المحافظة</th>
                     <th><FaUsers /> اللجنة</th>
+                    <th><FaUser /> الدور الوظيفي</th>
                     <th><FaCalendar /> تاريخ التسجيل</th>
                   </tr>
                 </thead>
@@ -322,6 +407,9 @@ function AdminDashboard() {
                       </td>
                       <td>
                         <span className="badge badge-committee">{user.committee}</span>
+                      </td>
+                      <td>
+                        <span className="badge badge-role">{user.role || 'غير محدد'}</span>
                       </td>
                       <td>{new Date(user.createdAt).toLocaleDateString('ar-EG')}</td>
                     </motion.tr>

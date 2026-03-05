@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
-import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie } from 'react-icons/fa';
 
 function RegistrationForm() {
   const navigate = useNavigate();
@@ -13,7 +13,8 @@ function RegistrationForm() {
     number: '',
     id: '',
     governorate: '',
-    committee: ''
+    committee: '',
+    role: ''
   });
 
   const governorates = [
@@ -54,54 +55,19 @@ function RegistrationForm() {
     'OR'
   ];
 
+  const roles = [
+    'Head',
+    'Vice Head',
+    'Team Leader',
+    'Vice Team Leader',
+    'Member'
+  ];
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // دالة للتحقق من تكرار رقم الهوية
-  const checkDuplicateId = async (userId) => {
-    try {
-      // البحث في جميع المحافظات
-      for (const gov of governorates) {
-        const q = query(
-          collection(db, gov),
-          where('userId', '==', userId)
-        );
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          return true; // رقم الهوية موجود
-        }
-      }
-      return false; // رقم الهوية غير موجود
-    } catch (error) {
-      console.error('Error checking duplicate ID:', error);
-      return false;
-    }
-  };
-
-  // دالة للتحقق من تكرار رقم الهاتف
-  const checkDuplicatePhone = async (phoneNumber) => {
-    try {
-      // البحث في جميع المحافظات
-      for (const gov of governorates) {
-        const q = query(
-          collection(db, gov),
-          where('number', '==', phoneNumber)
-        );
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          return true; // رقم الهاتف موجود
-        }
-      }
-      return false; // رقم الهاتف غير موجود
-    } catch (error) {
-      console.error('Error checking duplicate phone:', error);
-      return false;
-    }
-  };
-
+  // دالة للتحقق من وجود تسجيل سابق
   useEffect(() => {
     // التحقق من وجود تسجيل سابق في الجلسة الحالية
     const existingProfile = sessionStorage.getItem('yly_profile');
@@ -169,22 +135,20 @@ function RegistrationForm() {
     }
 
     try {
-      // التحقق من أن رقم الهوية غير مستخدم من قبل
-      const isDuplicateId = await checkDuplicateId(formData.id);
-      if (isDuplicateId) {
-        setError('رقم الهوية هذا مسجل بالفعل. لا يمكن استخدام نفس الرقم مرتين.');
+      // التحقق السريع من التكرار في نفس المحافظة فقط
+      const q = query(
+        collection(db, formData.governorate),
+        where('userId', '==', formData.id)
+      );
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        setError('رقم الهوية هذا مسجل بالفعل في هذه المحافظة.');
         setLoading(false);
         return;
       }
 
-      // التحقق من أن رقم الهاتف غير مستخدم من قبل
-      const isDuplicatePhone = await checkDuplicatePhone(formData.number);
-      if (isDuplicatePhone) {
-        setError('رقم الهاتف هذا مسجل بالفعل. لا يمكن استخدام نفس الرقم مرتين.');
-        setLoading(false);
-        return;
-      }
-
+      // إضافة المستخدم مباشرة
       const docRef = await addDoc(collection(db, formData.governorate), {
         name: formData.name,
         email: formData.email,
@@ -192,12 +156,13 @@ function RegistrationForm() {
         userId: formData.id,
         governorate: formData.governorate,
         committee: formData.committee,
+        role: formData.role,
         createdAt: new Date().toISOString()
       });
 
       setSuccess('تم التسجيل بنجاح!');
       
-      // حفظ معلومات البروفايل في sessionStorage (يُحذف عند إغلاق المتصفح)
+      // حفظ معلومات البروفايل في sessionStorage
       sessionStorage.setItem('yly_profile', JSON.stringify({
         id: docRef.id,
         governorate: formData.governorate,
@@ -206,7 +171,7 @@ function RegistrationForm() {
       
       setTimeout(() => {
         navigate(`/profile/${formData.governorate}/${docRef.id}`);
-      }, 2000);
+      }, 1500);
 
     } catch (err) {
       console.error('Error adding document: ', err);
@@ -430,6 +395,27 @@ function RegistrationForm() {
               {committees.map((committee) => (
                 <option key={committee} value={committee}>
                   {committee}
+                </option>
+              ))}
+            </select>
+          </motion.div>
+
+          <motion.div className="form-group" variants={itemVariants}>
+            <label htmlFor="role">
+              <FaUserTie className="input-icon" />
+              الدور الوظيفي
+            </label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              disabled={loading}
+            >
+              <option value="">اختر الدور</option>
+              {roles.map((role) => (
+                <option key={role} value={role}>
+                  {role}
                 </option>
               ))}
             </select>
