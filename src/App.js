@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Login from './components/Login';
 import RegistrationForm from './components/RegistrationForm';
 import Profile from './components/Profile';
 import AdminDashboard from './components/AdminDashboard';
@@ -20,7 +21,8 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/" element={<RegistrationForm />} />
+          <Route path="/" element={<Login />} />
+          <Route path="/register" element={<RegistrationForm />} />
           <Route path="/profile/:governorate/:id" element={<Profile />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/scanner" element={<QRScanner />} />
