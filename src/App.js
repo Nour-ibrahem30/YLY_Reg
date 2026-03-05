@@ -10,11 +10,6 @@ import AttendanceLogs from './components/AttendanceLogs';
 import './App.css';
 import './AdminStyles.css';
 
-// Test Supabase connection in development
-if (process.env.NODE_ENV === 'development') {
-  import('./utils/testSupabase');
-}
-
 function App() {
 
   return (

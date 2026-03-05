@@ -89,7 +89,8 @@ function AdminDashboard() {
   }, [allUsers, searchTerm, filterGovernorate, filterCommittee]);
 
   useEffect(() => {
-    fetchAllUsers();
+    // Don't fetch on mount - wait for user action or filter
+    // fetchAllUsers();
   }, []); // Empty dependency array - only run once
 
   useEffect(() => {
@@ -171,6 +172,125 @@ function AdminDashboard() {
               }}
             >
               إعادة المحاولة
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show initial state with load button
+  if (allUsers.length === 0 && !loading && !error) {
+    return (
+      <div className="admin-page">
+        <div className="admin-container">
+          <motion.div 
+            className="admin-header"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div>
+              <h1>لوحة تحكم الأدمن</h1>
+              <p>إدارة أعضاء YLY</p>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <Link 
+                to="/admin/events" 
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <FaCalendarAlt /> إدارة الفعاليات
+              </Link>
+              <Link 
+                to="/admin/attendance" 
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <FaClipboardList /> سجلات الحضور
+              </Link>
+              <Link 
+                to="/admin/scanner" 
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #0066ff 0%, #00ccff 100%)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 153, 255, 0.3)',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <FaQrcode /> ماسح QR
+              </Link>
+            </div>
+          </motion.div>
+
+          <div style={{
+            textAlign: 'center',
+            padding: '100px 20px',
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '16px',
+            marginTop: '40px'
+          }}>
+            <FaUser size={80} style={{ color: '#d1d5db', marginBottom: '30px' }} />
+            <h2 style={{ color: '#001845', fontSize: '1.8rem', marginBottom: '15px' }}>
+              اضغط لتحميل بيانات الأعضاء
+            </h2>
+            <p style={{ color: '#6b7280', marginBottom: '30px', fontSize: '1.1rem' }}>
+              سيتم تحميل البيانات من جميع المحافظات (27 محافظة)
+            </p>
+            <button
+              onClick={fetchAllUsers}
+              style={{
+                padding: '16px 40px',
+                background: 'linear-gradient(135deg, #0066ff 0%, #00ccff 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                fontSize: '1.2rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                fontFamily: 'Cairo, sans-serif',
+                boxShadow: '0 10px 25px rgba(0, 153, 255, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 15px 35px rgba(0, 153, 255, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 10px 25px rgba(0, 153, 255, 0.3)';
+              }}
+            >
+              <FaUser style={{ marginLeft: '10px' }} />
+              تحميل بيانات الأعضاء
             </button>
           </div>
         </div>

@@ -32,35 +32,37 @@ function Login() {
     }
 
     try {
-      // البحث في كل المحافظات
-      let userFound = false;
-      let userGovernorate = '';
-      let userDocId = '';
-
-      for (const gov of governorates) {
+      // البحث في كل المحافظات بشكل متوازي (أسرع)
+      const searchPromises = governorates.map(async (gov) => {
         const q = query(
           collection(db, gov),
           where('userId', '==', userId)
         );
         const querySnapshot = await getDocs(q);
-
+        
         if (!querySnapshot.empty) {
-          userFound = true;
-          userGovernorate = gov;
-          userDocId = querySnapshot.docs[0].id;
-          break;
+          return {
+            found: true,
+            governorate: gov,
+            docId: querySnapshot.docs[0].id
+          };
         }
-      }
+        return { found: false };
+      });
 
-      if (userFound) {
+      // تنفيذ كل البحث في نفس الوقت
+      const results = await Promise.all(searchPromises);
+      const userResult = results.find(r => r.found);
+
+      if (userResult) {
         // المستخدم موجود - توجيه للبروفايل
-        navigate(`/profile/${userGovernorate}/${userDocId}`);
+        navigate(`/profile/${userResult.governorate}/${userResult.docId}`);
       } else {
         // المستخدم غير موجود - توجيه للتسجيل
         setError('رقم الهوية غير مسجل. سيتم توجيهك لصفحة التسجيل...');
         setTimeout(() => {
           navigate('/register', { state: { userId } });
-        }, 2000);
+        }, 1500);
       }
     } catch (err) {
       console.error('Error during login:', err);

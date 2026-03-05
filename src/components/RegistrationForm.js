@@ -69,18 +69,6 @@ function RegistrationForm() {
   const [success, setSuccess] = useState('');
 
   // دالة للتحقق من وجود تسجيل سابق
-  useEffect(() => {
-    // التحقق من وجود تسجيل سابق في الجلسة الحالية
-    const existingProfile = sessionStorage.getItem('yly_profile');
-    if (existingProfile) {
-      const profileData = JSON.parse(existingProfile);
-      setSuccess('لديك حساب مسجل بالفعل في هذه الجلسة! جاري التوجيه...');
-      setTimeout(() => {
-        navigate(`/profile/${profileData.governorate}/${profileData.id}`);
-      }, 2000);
-    }
-  }, [navigate]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     
