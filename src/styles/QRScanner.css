@@ -3,7 +3,6 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #001845 0%, #002855 50%, #003d82 100%);
   padding: 40px 20px;
-  position: relative;
 }
 
 .qr-scanner-page::before {
@@ -24,7 +23,6 @@
 .scanner-container {
   max-width: 800px;
   margin: 0 auto;
-  position: relative;
   z-index: 1;
 }
 

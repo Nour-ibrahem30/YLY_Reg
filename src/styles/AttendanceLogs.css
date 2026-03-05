@@ -3,8 +3,6 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #001845 0%, #002855 50%, #003d82 100%);
   padding: 40px 20px;
-  position: relative;
-  overflow-x: hidden;
 }
 
 .attendance-logs-page::before {
@@ -25,7 +23,6 @@
 .attendance-container {
   max-width: 1400px;
   margin: 0 auto;
-  position: relative;
   z-index: 1;
 }
 

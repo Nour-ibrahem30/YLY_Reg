@@ -112,8 +112,7 @@ export const getActiveEvents = async () => {
   try {
     const q = query(
       collection(db, EVENTS_COLLECTION),
-      where('status', '==', 'active'),
-      orderBy('date', 'desc')
+      where('status', '==', 'active')
     );
     
     const querySnapshot = await getDocs(q);
@@ -125,6 +124,9 @@ export const getActiveEvents = async () => {
         ...doc.data()
       });
     });
+
+    // Sort by date in JavaScript instead of Firestore
+    events.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return {
       success: true,
