@@ -32,24 +32,18 @@ function AdminDashboard() {
     try {
       const users = [];
       
-      console.log('Starting to fetch data from', governorates.length, 'governorates...');
+      console.log('Fetching data from users collection...');
       
-      // جلب البيانات من كل محافظة
-      for (const gov of governorates) {
-        try {
-          const querySnapshot = await getDocs(collection(db, gov));
-          console.log(`Fetched ${querySnapshot.size} users from ${gov}`);
-          querySnapshot.forEach((doc) => {
-            users.push({
-              id: doc.id,
-              ...doc.data()
-            });
-          });
-        } catch (govError) {
-          console.warn(`Error fetching from ${gov}:`, govError);
-          // Continue with other governorates even if one fails
-        }
-      }
+      // جلب البيانات من users collection
+      const querySnapshot = await getDocs(collection(db, 'users'));
+      console.log(`Fetched ${querySnapshot.size} users`);
+      
+      querySnapshot.forEach((doc) => {
+        users.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
       
       console.log('Total users fetched:', users.length);
       setAllUsers(users);
@@ -60,7 +54,7 @@ function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [governorates]);
+  }, []);
 
   const filterUsers = useCallback(() => {
     let filtered = [...allUsers];
@@ -281,7 +275,7 @@ function AdminDashboard() {
               اضغط لتحميل بيانات الأعضاء
             </h2>
             <p style={{ color: '#6b7280', marginBottom: '30px', fontSize: '1.1rem' }}>
-              سيتم تحميل البيانات من جميع المحافظات (27 محافظة)
+              سيتم تحميل بيانات الأعضاء المعتمدين من قاعدة البيانات
             </p>
             <button
               onClick={fetchAllUsers}
