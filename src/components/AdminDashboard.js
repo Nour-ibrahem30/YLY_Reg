@@ -8,7 +8,7 @@ import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaCalen
 function AdminDashboard() {
   const [allUsers, setAllUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGovernorate, setFilterGovernorate] = useState('');
@@ -32,18 +32,39 @@ function AdminDashboard() {
     try {
       const users = [];
       
-      console.log('Fetching data from users collection...');
+      console.log('Fetching data from users collection and governorates...');
       
-      // جلب البيانات من users collection
-      const querySnapshot = await getDocs(collection(db, 'users'));
-      console.log(`Fetched ${querySnapshot.size} users`);
-      
-      querySnapshot.forEach((doc) => {
-        users.push({
-          id: doc.id,
-          ...doc.data()
+      // 1. جلب البيانات من users collection (المستخدمين المعتمدين الجدد)
+      try {
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        console.log(`Fetched ${usersSnapshot.size} users from users collection`);
+        usersSnapshot.forEach((doc) => {
+          users.push({
+            id: doc.id,
+            ...doc.data(),
+            source: 'users'
+          });
         });
-      });
+      } catch (err) {
+        console.warn('Error fetching from users collection:', err);
+      }
+      
+      // 2. جلب البيانات من المحافظات (المستخدمين القدامى)
+      for (const gov of governorates) {
+        try {
+          const querySnapshot = await getDocs(collection(db, gov));
+          console.log(`Fetched ${querySnapshot.size} users from ${gov}`);
+          querySnapshot.forEach((doc) => {
+            users.push({
+              id: doc.id,
+              ...doc.data(),
+              source: gov
+            });
+          });
+        } catch (govError) {
+          console.warn(`Error fetching from ${gov}:`, govError);
+        }
+      }
       
       console.log('Total users fetched:', users.length);
       setAllUsers(users);
@@ -54,7 +75,7 @@ function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [governorates]);
 
   const filterUsers = useCallback(() => {
     let filtered = [...allUsers];
@@ -275,7 +296,7 @@ function AdminDashboard() {
               اضغط لتحميل بيانات الأعضاء
             </h2>
             <p style={{ color: '#6b7280', marginBottom: '30px', fontSize: '1.1rem' }}>
-              سيتم تحميل بيانات الأعضاء المعتمدين من قاعدة البيانات
+              سيتم تحميل بيانات الأعضاء من جميع المصادر (المحافظات + المستخدمين المعتمدين)
             </p>
             <button
               onClick={fetchAllUsers}

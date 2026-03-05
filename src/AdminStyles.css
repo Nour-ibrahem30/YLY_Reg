@@ -1,11 +1,8 @@
 /* Admin Dashboard Styles */
 .admin-page {
   min-height: 100vh;
-  height: 100vh;
   background: linear-gradient(135deg, #001845 0%, #002855 50%, #003d82 100%);
   padding: 40px 20px;
-  position: relative;
-  overflow: hidden;
 }
 
 .admin-page::before {
@@ -28,10 +25,7 @@
   margin: 0 auto;
   position: relative;
   z-index: 1;
-  height: calc(100vh - 80px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .admin-header {
@@ -185,20 +179,18 @@
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  flex: 1;
+  margin-bottom: 40px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 .table-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: auto;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .table-wrapper::-webkit-scrollbar {
-  width: 8px;
+  width: 0px;
   height: 8px;
 }
 
@@ -220,6 +212,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
+  table-layout: fixed;
 }
 
 .users-table thead {
@@ -232,6 +225,8 @@
   text-align: right;
   font-weight: 700;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .users-table th svg {
@@ -251,6 +246,9 @@
 .users-table td {
   padding: 16px 12px;
   color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-name {
