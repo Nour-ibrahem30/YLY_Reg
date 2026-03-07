@@ -143,9 +143,11 @@ function AttendanceLogs() {
   };
 
   const exportToCSV = () => {
-    const headers = ['الاسم', 'البريد الإلكتروني', 'المحافظة', 'اللجنة', 'الدور الوظيفي', 'الفعالية', 'التاريخ', 'الوقت'];
-    const csvData = filteredAttendance.map(att => [
+    const headers = ['#', 'الاسم', 'الرقم القومي', 'البريد الإلكتروني', 'المحافظة', 'اللجنة', 'الدور الوظيفي', 'الفعالية', 'التاريخ', 'الوقت'];
+    const csvData = filteredAttendance.map((att, index) => [
+      index + 1,
       att.userName,
+      att.userNationalId || att.userId || 'غير متوفر',
       att.userEmail,
       att.userGovernorate,
       att.userCommittee,

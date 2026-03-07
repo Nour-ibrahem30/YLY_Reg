@@ -39,6 +39,7 @@ export const recordAttendance = async (userId, eventId, scannedBy, userInfo) => 
       scannedBy,
       userName: userInfo.name,
       userEmail: userInfo.email,
+      userNationalId: userInfo.userId || userId,  // الرقم القومي (14 رقم)
       userGovernorate: userInfo.governorate,
       userCommittee: userInfo.committee,
       userRole: userInfo.role,
