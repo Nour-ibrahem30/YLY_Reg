@@ -65,8 +65,7 @@ export const getAttendanceByEvent = async (eventId) => {
   try {
     const q = query(
       collection(db, ATTENDANCE_COLLECTION),
-      where('eventId', '==', eventId),
-      orderBy('createdAt', 'desc')
+      where('eventId', '==', eventId)
     );
     
     const querySnapshot = await getDocs(q);
@@ -77,6 +76,13 @@ export const getAttendanceByEvent = async (eventId) => {
         id: doc.id,
         ...doc.data()
       });
+    });
+
+    // Sort by createdAt in JavaScript
+    attendance.sort((a, b) => {
+      const aTime = a.createdAt?.toMillis() || 0;
+      const bTime = b.createdAt?.toMillis() || 0;
+      return bTime - aTime;
     });
 
     return {
@@ -98,8 +104,7 @@ export const getAttendanceByUser = async (userId) => {
   try {
     const q = query(
       collection(db, ATTENDANCE_COLLECTION),
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', userId)
     );
     
     const querySnapshot = await getDocs(q);
@@ -110,6 +115,13 @@ export const getAttendanceByUser = async (userId) => {
         id: doc.id,
         ...doc.data()
       });
+    });
+
+    // Sort by createdAt in JavaScript
+    attendance.sort((a, b) => {
+      const aTime = a.createdAt?.toMillis() || 0;
+      const bTime = b.createdAt?.toMillis() || 0;
+      return bTime - aTime;
     });
 
     return {
@@ -134,8 +146,7 @@ export const getTodayAttendance = async () => {
     
     const q = query(
       collection(db, ATTENDANCE_COLLECTION),
-      where('createdAt', '>=', Timestamp.fromDate(today)),
-      orderBy('createdAt', 'desc')
+      where('createdAt', '>=', Timestamp.fromDate(today))
     );
     
     const querySnapshot = await getDocs(q);
@@ -146,6 +157,13 @@ export const getTodayAttendance = async () => {
         id: doc.id,
         ...doc.data()
       });
+    });
+
+    // Sort by createdAt in JavaScript
+    attendance.sort((a, b) => {
+      const aTime = a.createdAt?.toMillis() || 0;
+      const bTime = b.createdAt?.toMillis() || 0;
+      return bTime - aTime;
     });
 
     return {
@@ -168,8 +186,7 @@ export const getTodayAttendance = async () => {
 export const listenToAttendance = (eventId, callback) => {
   const q = query(
     collection(db, ATTENDANCE_COLLECTION),
-    where('eventId', '==', eventId),
-    orderBy('createdAt', 'desc')
+    where('eventId', '==', eventId)
   );
   
   return onSnapshot(q, (querySnapshot) => {
@@ -180,6 +197,14 @@ export const listenToAttendance = (eventId, callback) => {
         ...doc.data()
       });
     });
+    
+    // Sort by createdAt in JavaScript
+    attendance.sort((a, b) => {
+      const aTime = a.createdAt?.toMillis() || 0;
+      const bTime = b.createdAt?.toMillis() || 0;
+      return bTime - aTime;
+    });
+    
     callback(attendance);
   });
 };
