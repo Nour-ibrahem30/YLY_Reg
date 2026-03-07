@@ -132,16 +132,17 @@ function QRScanner() {
           id: userInfo.userId,
           governorate: userData.governorate
         });
-        setMessage({ type: 'success', text: 'تم تسجيل الحضور بنجاح!' });
+        setMessage({ type: 'success', text: '✅ تم تسجيل الحضور بنجاح!' });
         
         // Auto restart scanner after 3 seconds
         setTimeout(() => {
           setScannedUser(null);
+          setMessage({ type: '', text: '' });
           startScanner();
         }, 3000);
       } else {
         if (attendanceResult.error === 'duplicate') {
-          setMessage({ type: 'warning', text: attendanceResult.message });
+          setMessage({ type: 'warning', text: '⚠️ تم تسجيل الحضور مسبقاً! لا يمكن التسجيل مرة أخرى' });
           setScannedUser({
             ...userData,
             id: userInfo.userId,
@@ -149,11 +150,12 @@ function QRScanner() {
             duplicate: true
           });
         } else {
-          setMessage({ type: 'error', text: 'فشل تسجيل الحضور' });
+          setMessage({ type: 'error', text: '❌ فشل تسجيل الحضور' });
         }
         
         setTimeout(() => {
           setScannedUser(null);
+          setMessage({ type: '', text: '' });
           startScanner();
         }, 3000);
       }
