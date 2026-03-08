@@ -251,7 +251,14 @@ function Profile() {
             </div>
           </div>
 
-          <div style={{ background: 'linear-gradient(135deg, #0066ff 0%, #00ccff 100%)', padding: '40px', borderRadius: '20px', textAlign: 'center', color: 'white' }}>
+          <div style={{ 
+            background: 'linear-gradient(135deg, #0066ff 0%, #00ccff 100%)', 
+            padding: '40px', 
+            borderRadius: '20px', 
+            textAlign: 'center', 
+            color: 'white',
+            height: 'fit-content'
+          }}>
             <h3 style={{ marginBottom: '30px', fontSize: '1.5rem', fontWeight: '700' }}>رمز الاستجابة السريع</h3>
             <div style={{ background: 'white', padding: '30px', borderRadius: '20px', display: 'inline-block' }}>
               <QRCodeSVG 

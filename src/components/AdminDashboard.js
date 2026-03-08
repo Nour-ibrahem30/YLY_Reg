@@ -1,9 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
-import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaCalendar, FaSearch, FaDownload, FaQrcode, FaCalendarAlt, FaClipboardList, FaUserClock } from 'react-icons/fa';
+import gsap from 'gsap';
+import { FaUser, FaMapMarkerAlt, FaUsers, FaSearch, FaDownload, FaQrcode, FaCalendarAlt, FaClipboardList, FaUserClock, FaTh, FaTable, FaEnvelope, FaPhone, FaIdCard, FaCalendar, FaChartBar } from 'react-icons/fa';
+import UserCard from './UserCard';
+import UserDetailsModal from './UserDetailsModal';
+import '../styles/UserCards.css';
 
 function AdminDashboard() {
   const [allUsers, setAllUsers] = useState([]);
@@ -13,6 +17,13 @@ function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGovernorate, setFilterGovernorate] = useState('');
   const [filterCommittee, setFilterCommittee] = useState('');
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
+  const [selectedUser, setSelectedUser] = useState(null);
+  
+  // Refs for GSAP animations
+  const headerRef = useRef(null);
+  const statsRef = useRef(null);
+  const filtersRef = useRef(null);
 
   // Move arrays outside to prevent re-creation
   const governorates = React.useMemo(() => [
@@ -106,6 +117,38 @@ function AdminDashboard() {
   useEffect(() => {
     // Don't fetch on mount - wait for user action or filter
     // fetchAllUsers();
+    
+    // GSAP entrance animations
+    if (headerRef.current) {
+      gsap.from(headerRef.current, {
+        duration: 0.8,
+        y: -50,
+        opacity: 0,
+        ease: 'power3.out'
+      });
+    }
+    
+    if (statsRef.current) {
+      gsap.from(statsRef.current.children, {
+        duration: 0.6,
+        y: 30,
+        opacity: 0,
+        stagger: 0.15,
+        ease: 'back.out(1.7)',
+        delay: 0.3
+      });
+    }
+    
+    if (filtersRef.current) {
+      gsap.from(filtersRef.current.children, {
+        duration: 0.5,
+        x: -30,
+        opacity: 0,
+        stagger: 0.1,
+        ease: 'power2.out',
+        delay: 0.6
+      });
+    }
   }, []); // Empty dependency array - only run once
 
   useEffect(() => {
@@ -210,6 +253,42 @@ function AdminDashboard() {
             </div>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <Link 
+                to="/admin/analytics" 
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <FaChartBar /> التحليلات
+              </Link>
+              <Link 
+                to="/admin/governorates" 
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <FaMapMarkerAlt /> المحافظات
+              </Link>
+              <Link 
                 to="/admin/events" 
                 style={{
                   padding: '12px 24px',
@@ -281,6 +360,24 @@ function AdminDashboard() {
               >
                 <FaQrcode /> ماسح QR
               </Link>
+              <Link 
+                to="/admin/tasks" 
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #E31E24 0%, #B71C1C 100%)',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(227, 30, 36, 0.3)',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <FaClipboardList /> المهام المرفوعة
+              </Link>
             </div>
           </motion.div>
 
@@ -336,6 +433,7 @@ function AdminDashboard() {
       <div className="admin-container">
         <motion.div 
           className="admin-header"
+          ref={headerRef}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -444,7 +542,7 @@ function AdminDashboard() {
         </motion.div>
 
         {/* Statistics Cards */}
-        <div className="stats-grid">
+        <div className="stats-grid" ref={statsRef}>
           <motion.div 
             className="stat-card"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -494,6 +592,7 @@ function AdminDashboard() {
         {/* Filters */}
         <motion.div 
           className="filters-section"
+          ref={filtersRef}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -533,18 +632,80 @@ function AdminDashboard() {
           <button onClick={exportToCSV} className="export-btn">
             <FaDownload /> تصدير Excel
           </button>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button 
+              onClick={() => setViewMode('cards')} 
+              className={`view-mode-btn ${viewMode === 'cards' ? 'active' : ''}`}
+              style={{
+                padding: '12px 20px',
+                background: viewMode === 'cards' ? 'linear-gradient(135deg, #0066ff 0%, #00ccff 100%)' : '#f3f4f6',
+                color: viewMode === 'cards' ? 'white' : '#6b7280',
+                border: 'none',
+                borderRadius: '10px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s ease',
+                fontFamily: 'Cairo, sans-serif'
+              }}
+            >
+              <FaTh /> عرض البطاقات
+            </button>
+            <button 
+              onClick={() => setViewMode('table')} 
+              className={`view-mode-btn ${viewMode === 'table' ? 'active' : ''}`}
+              style={{
+                padding: '12px 20px',
+                background: viewMode === 'table' ? 'linear-gradient(135deg, #0066ff 0%, #00ccff 100%)' : '#f3f4f6',
+                color: viewMode === 'table' ? 'white' : '#6b7280',
+                border: 'none',
+                borderRadius: '10px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s ease',
+                fontFamily: 'Cairo, sans-serif'
+              }}
+            >
+              <FaTable /> عرض الجدول
+            </button>
+          </div>
         </motion.div>
 
-        {/* Users Table */}
-        <motion.div 
-          className="table-container"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          {filteredUsers.length === 0 ? (
-            <div className="no-data">لا توجد بيانات</div>
-          ) : (
+        {/* Users Display - Cards or Table */}
+        {filteredUsers.length === 0 ? (
+          <div className="no-data" style={{ marginTop: '40px', padding: '60px 20px', background: 'white', borderRadius: '16px', textAlign: 'center' }}>
+            <FaUser size={60} style={{ color: '#d1d5db', marginBottom: '20px' }} />
+            <p style={{ fontSize: '1.2rem', color: '#6b7280' }}>لا توجد بيانات</p>
+          </div>
+        ) : viewMode === 'cards' ? (
+          <motion.div 
+            className="users-grid"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            {filteredUsers.map((user, index) => (
+              <UserCard 
+                key={user.id} 
+                user={user} 
+                index={index}
+                onClick={setSelectedUser}
+              />
+            ))}
+          </motion.div>
+        ) : (
+          <motion.div 
+            className="table-container"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
             <div className="table-wrapper">
               <table className="users-table">
                 <thead>
@@ -588,8 +749,16 @@ function AdminDashboard() {
                 </tbody>
               </table>
             </div>
-          )}
-        </motion.div>
+          </motion.div>
+        )}
+
+        {/* User Details Modal */}
+        {selectedUser && (
+          <UserDetailsModal 
+            user={selectedUser} 
+            onClose={() => setSelectedUser(null)} 
+          />
+        )}
       </div>
     </div>
   );

@@ -3,16 +3,21 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@react-three/drei": "^9.88.0",
+    "@react-three/fiber": "^8.15.0",
     "@supabase/supabase-js": "^2.98.0",
     "firebase": "^10.7.1",
     "framer-motion": "^12.34.3",
+    "gsap": "^3.14.2",
     "html5-qrcode": "^2.3.8",
     "qrcode.react": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^6.20.0",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "recharts": "^3.8.0",
+    "three": "^0.183.2"
   },
   "scripts": {
     "start": "react-scripts start",

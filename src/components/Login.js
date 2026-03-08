@@ -4,6 +4,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
 import { FaIdCard, FaUser, FaSignInAlt, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import '../styles/Auth.css';
 
 function Login() {
   const navigate = useNavigate();
@@ -12,15 +13,6 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
-  const governorates = [
-    'القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'البحر الأحمر',
-    'البحيرة', 'الفيوم', 'الغربية', 'الإسماعيلية', 'المنوفية',
-    'المنيا', 'القليوبية', 'الوادي الجديد', 'الشرقية', 'السويس',
-    'أسوان', 'أسيوط', 'بني سويف', 'بورسعيد', 'دمياط',
-    'الأقصر', 'قنا', 'كفر الشيخ', 'مطروح', 'شمال سيناء',
-    'جنوب سيناء', 'سوهاج'
-  ];
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -105,8 +97,9 @@ function Login() {
             }}
           >
             <img 
-              src="/yly-logo.png" 
+              src="/images/yly-logo.jpg" 
               alt="YLY Logo"
+              style={{ width: '600px', height: '200px', objectFit: 'cover', borderRadius: '50%' }}
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'block';

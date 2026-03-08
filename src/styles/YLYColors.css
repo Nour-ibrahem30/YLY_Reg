@@ -1,0 +1,37 @@
+/* YLY Brand Colors - Based on Official Logo */
+:root {
+  /* Primary Colors */
+  --yly-blue: #003DA5;
+  --yly-dark-blue: #002D7A;
+  --yly-light-blue: #0052CC;
+  --yly-red: #E31E24;
+  --yly-dark-red: #B71C1C;
+  --yly-black: #000000;
+  --yly-dark-gray: #1a1a1a;
+  --yly-gray: #4a4a4a;
+  --yly-light-gray: #f5f5f5;
+  --yly-white: #ffffff;
+  
+  /* Gradient Combinations */
+  --yly-gradient-primary: linear-gradient(135deg, #003DA5 0%, #002D7A 100%);
+  --yly-gradient-red: linear-gradient(135deg, #E31E24 0%, #B71C1C 100%);
+  --yly-gradient-blue-red: linear-gradient(135deg, #003DA5 0%, #E31E24 100%);
+  --yly-gradient-dark: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  
+  /* Shadows */
+  --yly-shadow-blue: 0 10px 30px rgba(0, 61, 165, 0.4);
+  --yly-shadow-blue-hover: 0 15px 40px rgba(0, 61, 165, 0.5);
+  --yly-shadow-red: 0 10px 30px rgba(227, 30, 36, 0.4);
+  --yly-shadow-dark: 0 10px 30px rgba(0, 0, 0, 0.3);
+  
+  /* Opacity Variations */
+  --yly-blue-10: rgba(0, 61, 165, 0.1);
+  --yly-blue-20: rgba(0, 61, 165, 0.2);
+  --yly-blue-30: rgba(0, 61, 165, 0.3);
+  --yly-blue-40: rgba(0, 61, 165, 0.4);
+  --yly-blue-50: rgba(0, 61, 165, 0.5);
+  
+  --yly-red-10: rgba(227, 30, 36, 0.1);
+  --yly-red-20: rgba(227, 30, 36, 0.2);
+  --yly-red-30: rgba(227, 30, 36, 0.3);
+}

@@ -19,6 +19,8 @@ const STORAGE_BUCKET = 'yly-tasks';
 // Submit task
 export const submitTask = async (userId, eventId, file, userInfo) => {
   try {
+    console.log('Starting task submission...', { userId, eventId, fileName: file.name });
+    
     // Upload file to Supabase
     const uploadResult = await uploadFile(
       file, 
@@ -26,10 +28,13 @@ export const submitTask = async (userId, eventId, file, userInfo) => {
       `${userId}/${eventId}`
     );
 
+    console.log('Upload result:', uploadResult);
+
     if (!uploadResult.success) {
+      console.error('Upload failed:', uploadResult.error);
       return {
         success: false,
-        error: 'فشل رفع الملف'
+        error: uploadResult.error || 'فشل رفع الملف إلى التخزين السحابي'
       };
     }
 
@@ -94,6 +99,7 @@ export const updateTaskStatus = async (taskId, status, reviewedBy, notes = '') =
 // Get tasks by event
 export const getTasksByEvent = async (eventId) => {
   try {
+    // Try with orderBy first
     const q = query(
       collection(db, TASKS_COLLECTION),
       where('eventId', '==', eventId),
@@ -115,18 +121,51 @@ export const getTasksByEvent = async (eventId) => {
       tasks
     };
   } catch (error) {
-    console.error('Error getting tasks:', error);
-    return {
-      success: false,
-      error: error.message,
-      tasks: []
-    };
+    console.error('Error getting tasks with orderBy, trying without:', error);
+    
+    // Fallback: Try without orderBy if index doesn't exist
+    try {
+      const q = query(
+        collection(db, TASKS_COLLECTION),
+        where('eventId', '==', eventId)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const tasks = [];
+      
+      querySnapshot.forEach((doc) => {
+        tasks.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      // Sort in JavaScript instead
+      tasks.sort((a, b) => {
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        return dateB - dateA; // Descending order
+      });
+
+      return {
+        success: true,
+        tasks
+      };
+    } catch (fallbackError) {
+      console.error('Error getting tasks (fallback):', fallbackError);
+      return {
+        success: false,
+        error: fallbackError.message,
+        tasks: []
+      };
+    }
   }
 };
 
 // Get tasks by user
 export const getTasksByUser = async (userId) => {
   try {
+    // Try with orderBy first
     const q = query(
       collection(db, TASKS_COLLECTION),
       where('userId', '==', userId),
@@ -148,12 +187,44 @@ export const getTasksByUser = async (userId) => {
       tasks
     };
   } catch (error) {
-    console.error('Error getting user tasks:', error);
-    return {
-      success: false,
-      error: error.message,
-      tasks: []
-    };
+    console.error('Error getting tasks with orderBy, trying without:', error);
+    
+    // Fallback: Try without orderBy if index doesn't exist
+    try {
+      const q = query(
+        collection(db, TASKS_COLLECTION),
+        where('userId', '==', userId)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const tasks = [];
+      
+      querySnapshot.forEach((doc) => {
+        tasks.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      // Sort in JavaScript instead
+      tasks.sort((a, b) => {
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        return dateB - dateA; // Descending order
+      });
+
+      return {
+        success: true,
+        tasks
+      };
+    } catch (fallbackError) {
+      console.error('Error getting tasks (fallback):', fallbackError);
+      return {
+        success: false,
+        error: fallbackError.message,
+        tasks: []
+      };
+    }
   }
 };
 

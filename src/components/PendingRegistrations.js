@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { collection, getDocs, doc, deleteDoc, addDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { FaUserCheck, FaUserTimes, FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie } from 'react-icons/fa';
 

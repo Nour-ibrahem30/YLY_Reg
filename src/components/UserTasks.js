@@ -107,10 +107,12 @@ function UserTasks({ userId, userInfo }) {
         // Reset form
         document.getElementById('file-input').value = '';
       } else {
-        setMessage({ type: 'error', text: result.error || 'فشل رفع المهمة' });
+        console.error('Task submission error:', result.error);
+        setMessage({ type: 'error', text: result.error || 'فشل رفع المهمة. تأكد من اتصالك بالإنترنت.' });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'حدث خطأ أثناء رفع المهمة' });
+      console.error('Task submission exception:', error);
+      setMessage({ type: 'error', text: error.message || 'حدث خطأ أثناء رفع المهمة. حاول مرة أخرى.' });
     } finally {
       setUploading(false);
     }

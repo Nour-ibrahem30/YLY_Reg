@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
-import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie, FaArrowLeft, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import '../styles/Auth.css';
 
 function RegistrationForm() {
   const navigate = useNavigate();
@@ -222,8 +223,9 @@ function RegistrationForm() {
             }}
           >
             <img 
-              src="/yly-logo.png" 
+              src="/images/yly-logo.jpg" 
               alt="YLY Logo"
+              style={{ width: '600px', height: '200px', objectFit: 'cover', borderRadius: '50%' }}
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'block';
