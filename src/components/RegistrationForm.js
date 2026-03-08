@@ -14,6 +14,7 @@ function RegistrationForm() {
     number: '',
     id: location.state?.userId || '',
     governorate: '',
+    university: '',
     committee: '',
     role: '',
     password: '',
@@ -391,6 +392,23 @@ function RegistrationForm() {
                 </option>
               ))}
             </select>
+          </motion.div>
+
+          <motion.div className="form-group" variants={itemVariants}>
+            <label htmlFor="university">
+              <FaUsers className="input-icon" />
+              الكلية / الجامعة
+            </label>
+            <input
+              type="text"
+              id="university"
+              name="university"
+              value={formData.university}
+              onChange={handleChange}
+              placeholder="مثال: كلية الهندسة - جامعة القاهرة"
+              disabled={loading}
+              dir="rtl"
+            />
           </motion.div>
 
           <motion.div className="form-group" variants={itemVariants}>

@@ -20,6 +20,8 @@ function QRScanner() {
   
   const scannerRef = useRef(null);
   const html5QrCodeRef = useRef(null);
+  const lastScannedRef = useRef(null);
+  const processingRef = useRef(false);
 
   useEffect(() => {
     loadActiveEvents();
@@ -89,6 +91,22 @@ function QRScanner() {
   };
 
   const onScanSuccess = async (decodedText) => {
+    // منع المسح المتكرر
+    if (processingRef.current) {
+      return;
+    }
+
+    // التحقق من أن هذا QR مختلف عن آخر واحد
+    const now = Date.now();
+    if (lastScannedRef.current && 
+        lastScannedRef.current.text === decodedText && 
+        now - lastScannedRef.current.time < 5000) {
+      return; // تجاهل إذا تم مسح نفس QR خلال 5 ثواني
+    }
+
+    processingRef.current = true;
+    lastScannedRef.current = { text: decodedText, time: now };
+    
     setLoading(true);
     await stopScanner();
 
@@ -99,6 +117,7 @@ function QRScanner() {
       if (!userInfo.success) {
         setMessage({ type: 'error', text: 'رمز QR غير صالح' });
         setLoading(false);
+        processingRef.current = false;
         setTimeout(() => startScanner(), 2000);
         return;
       }
@@ -109,6 +128,7 @@ function QRScanner() {
       if (!userDoc.exists()) {
         setMessage({ type: 'error', text: 'المستخدم غير موجود أو غير معتمد' });
         setLoading(false);
+        processingRef.current = false;
         setTimeout(() => startScanner(), 2000);
         return;
       }
@@ -138,6 +158,7 @@ function QRScanner() {
         setTimeout(() => {
           setScannedUser(null);
           setMessage({ type: '', text: '' });
+          processingRef.current = false;
           startScanner();
         }, 3000);
       } else {
@@ -156,12 +177,14 @@ function QRScanner() {
         setTimeout(() => {
           setScannedUser(null);
           setMessage({ type: '', text: '' });
+          processingRef.current = false;
           startScanner();
         }, 3000);
       }
     } catch (error) {
       console.error('Error processing scan:', error);
       setMessage({ type: 'error', text: 'حدث خطأ أثناء معالجة المسح' });
+      processingRef.current = false;
       setTimeout(() => startScanner(), 2000);
     } finally {
       setLoading(false);
