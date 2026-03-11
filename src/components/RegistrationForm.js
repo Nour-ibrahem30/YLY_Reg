@@ -1,14 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+import { uploadFile } from '../utils/supabase';
 import { motion } from 'framer-motion';
-import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie, FaLock, FaEye, FaEyeSlash, FaCamera, FaImage, FaShieldAlt, FaTrophy } from 'react-icons/fa';
+import { 
+  validateEgyptianID, 
+  validateEmail, 
+  validateEgyptianPhone, 
+  validateArabicName,
+  validatePasswordStrength,
+  sanitizeInput,
+  validateFileUpload,
+  hashPassword,
+  detectAttackPatterns
+} from '../utils/security';
+import securityLogger from '../utils/securityLogger';
 import '../styles/Auth.css';
 
 function RegistrationForm() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  
+  const slides = [
+    {
+      image: '/images/yly-logo.jpg',
+      title: 'انضم إلى YLY',
+      subtitle: 'Your Life Your Story',
+      description: 'سجل الآن وكن جزءاً من مجتمعنا المتميز'
+    },
+    {
+      image: '/images/auth-visual-3.jpg',
+      title: 'طور مهاراتك',
+      subtitle: 'نمو مستمر',
+      description: 'اكتسب خبرات جديدة وطور قدراتك مع فريقنا'
+    },
+    {
+      image: '/images/auth-visual-2.jpeg',
+      title: 'حقق إنجازاتك',
+      subtitle: 'نجاحات مشتركة',
+      description: 'ابدأ رحلتك نحو النجاح والتميز معنا'
+    }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,81 +65,88 @@ function RegistrationForm() {
     confirmPassword: ''
   });
 
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [idCardPhoto, setIdCardPhoto] = useState(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
+  const [idCardPhotoPreview, setIdCardPhotoPreview] = useState(null);
+
   const governorates = [
-    'القاهرة',
-    'الجيزة',
-    'الإسكندرية',
-    'الدقهلية',
-    'البحر الأحمر',
-    'البحيرة',
-    'الفيوم',
-    'الغربية',
-    'الإسماعيلية',
-    'المنوفية',
-    'المنيا',
-    'القليوبية',
-    'الوادي الجديد',
-    'الشرقية',
-    'السويس',
-    'أسوان',
-    'أسيوط',
-    'بني سويف',
-    'بورسعيد',
-    'دمياط',
-    'الأقصر',
-    'قنا',
-    'كفر الشيخ',
-    'مطروح',
-    'شمال سيناء',
-    'جنوب سيناء',
-    'سوهاج'
+    'القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'البحر الأحمر',
+    'البحيرة', 'الفيوم', 'الغربية', 'الإسماعيلية', 'المنوفية',
+    'المنيا', 'القليوبية', 'الوادي الجديد', 'الشرقية', 'السويس',
+    'أسوان', 'أسيوط', 'بني سويف', 'بورسعيد', 'دمياط',
+    'الأقصر', 'قنا', 'كفر الشيخ', 'مطروح', 'شمال سيناء',
+    'جنوب سيناء', 'سوهاج'
   ];
 
-  const committees = [
-    'PR',
-    'HR',
-    'R&D',
-    'Social Media',
-    'OR'
-  ];
-
-  const roles = [
-    'Head',
-    'Vice Head',
-    'Team Leader',
-    'Vice Team Leader',
-    'Member'
-  ];
+  const committees = ['PR', 'HR', 'R&D', 'Social Media', 'OR'];
+  const roles = ['Head', 'Vice Head', 'Team Leader', 'Vice Team Leader', 'Member'];
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ strength: 0, level: '', errors: [] });
 
-  // دالة للتحقق من وجود تسجيل سابق
+  const handleImageChange = (e, type) => {
+    const file = e.target.files[0];
+    if (file) {
+      const validation = validateFileUpload(file, {
+        maxSize: 10 * 1024 * 1024,
+        allowedTypes: ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'],
+        allowedExtensions: ['.jpg', '.jpeg', '.png', '.gif']
+      });
+      
+      if (!validation.valid) {
+        setError(validation.error);
+        return;
+      }
+
+      if (type === 'profile') {
+        setProfilePhoto(file);
+        setProfilePhotoPreview(URL.createObjectURL(file));
+      } else if (type === 'idCard') {
+        setIdCardPhoto(file);
+        setIdCardPhotoPreview(URL.createObjectURL(file));
+      }
+      setError('');
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let sanitizedValue = sanitizeInput(value);
     
-    // Validation للاسم - عربي فقط
-    if (name === 'name') {
-      const arabicOnly = /^[\u0600-\u06FF\s]*$/;
-      if (!arabicOnly.test(value)) {
-        return; // منع إدخال أي حروف غير عربية
-      }
+    const attackCheck = detectAttackPatterns(sanitizedValue);
+    if (attackCheck.detected) {
+      console.warn(`Attack detected in ${name}: ${attackCheck.type}`);
+      setError(`تم اكتشاف محاولة غير صالحة في حقل ${name === 'name' ? 'الاسم' : name}`);
+      return;
     }
     
-    // Validation لرقم الهوية - أرقام فقط وماكسيمم 14 رقم
-    if (name === 'id') {
-      const numbersOnly = /^[0-9]*$/;
-      if (!numbersOnly.test(value) || value.length > 14) {
+    if (name === 'name') {
+      const arabicOnly = /^[\u0600-\u06FF\s]*$/;
+      if (!arabicOnly.test(sanitizedValue)) {
         return;
       }
     }
     
+    if (name === 'id') {
+      const numbersOnly = /^[0-9]*$/;
+      if (!numbersOnly.test(sanitizedValue) || sanitizedValue.length > 14) {
+        return;
+      }
+    }
+    
+    if (name === 'password') {
+      const strength = validatePasswordStrength(sanitizedValue);
+      setPasswordStrength(strength);
+    }
+    
     setFormData({
       ...formData,
-      [name]: value
+      [name]: sanitizedValue
     });
     setError('');
     setSuccess('');
@@ -114,9 +164,49 @@ function RegistrationForm() {
       return;
     }
 
-    // التحقق من كلمة المرور
-    if (formData.password.length < 6) {
-      setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+    if (!profilePhoto) {
+      setError('الرجاء إضافة صورة شخصية');
+      setLoading(false);
+      return;
+    }
+
+    if (!idCardPhoto) {
+      setError('الرجاء إضافة صورة البطاقة الشخصية');
+      setLoading(false);
+      return;
+    }
+
+    const nameValidation = validateArabicName(formData.name);
+    if (!nameValidation.valid) {
+      setError(nameValidation.error);
+      setLoading(false);
+      return;
+    }
+
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.valid) {
+      setError(emailValidation.error);
+      setLoading(false);
+      return;
+    }
+
+    const phoneValidation = validateEgyptianPhone(formData.number);
+    if (!phoneValidation.valid) {
+      setError(phoneValidation.error);
+      setLoading(false);
+      return;
+    }
+
+    const idValidation = validateEgyptianID(formData.id);
+    if (!idValidation.valid) {
+      setError(idValidation.error);
+      setLoading(false);
+      return;
+    }
+
+    const passwordValidation = validatePasswordStrength(formData.password);
+    if (!passwordValidation.valid) {
+      setError('كلمة المرور ضعيفة: ' + passwordValidation.errors[0]);
       setLoading(false);
       return;
     }
@@ -127,23 +217,9 @@ function RegistrationForm() {
       return;
     }
 
-    // التحقق من أن الاسم عربي فقط
-    const arabicOnly = /^[\u0600-\u06FF\s]+$/;
-    if (!arabicOnly.test(formData.name)) {
-      setError('الرجاء إدخال الاسم بالعربي فقط');
-      setLoading(false);
-      return;
-    }
-
-    // التحقق من رقم الهوية (14 رقم)
-    if (formData.id.length !== 14) {
-      setError('رقم الهوية يجب أن يكون 14 رقم');
-      setLoading(false);
-      return;
-    }
-
     try {
-      // التحقق من التكرار في pending_registrations
+      const hashedPassword = await hashPassword(formData.password);
+      
       const pendingQ = query(
         collection(db, 'pending_registrations'),
         where('userId', '==', formData.id)
@@ -156,7 +232,6 @@ function RegistrationForm() {
         return;
       }
 
-      // التحقق من التكرار في users (المستخدمين المعتمدين)
       const usersQ = query(
         collection(db, 'users'),
         where('userId', '==', formData.id)
@@ -169,20 +244,52 @@ function RegistrationForm() {
         return;
       }
 
-      // إضافة المستخدم في pending_registrations
-      const docRef = await addDoc(collection(db, 'pending_registrations'), {
+      setSuccess('جاري رفع الصور...');
+      
+      const profileUploadResult = await uploadFile(
+        profilePhoto,
+        'user-images',
+        `profiles/${formData.id}`
+      );
+      
+      if (!profileUploadResult.success) {
+        setError(`خطأ في رفع الصورة الشخصية: ${profileUploadResult.error}`);
+        setLoading(false);
+        return;
+      }
+      
+      const idCardUploadResult = await uploadFile(
+        idCardPhoto,
+        'user-images',
+        `id-cards/${formData.id}`
+      );
+      
+      if (!idCardUploadResult.success) {
+        setError(`خطأ في رفع صورة البطاقة: ${idCardUploadResult.error}`);
+        setLoading(false);
+        return;
+      }
+
+      setSuccess('جاري حفظ البيانات...');
+      await addDoc(collection(db, 'pending_registrations'), {
         name: formData.name,
         email: formData.email,
-        number: formData.number,
+        number: phoneValidation.cleanPhone || formData.number,
         userId: formData.id,
         governorate: formData.governorate,
+        university: formData.university,
         committee: formData.committee,
         role: formData.role,
         password: formData.password,
+        passwordHash: hashedPassword,
+        profilePhotoURL: profileUploadResult.url,
+        idCardPhotoURL: idCardUploadResult.url,
         status: 'pending',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        securityVersion: '1.0'
       });
 
+      securityLogger.logRegistration(formData.id, formData.email);
       setSuccess('تم التسجيل بنجاح! في انتظار موافقة الإدارة.');
       
       setTimeout(() => {
@@ -197,366 +304,547 @@ function RegistrationForm() {
     }
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0 }
-  };
-
   return (
-    <div className="registration-page">
+    <div className="auth-page-glass">
       <motion.div 
-        className="brand-section"
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
+        className="auth-glass-container"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
+        style={{ maxWidth: '1200px' }}
       >
-        <div className="brand-content">
-          <motion.div 
-            className="brand-logo"
-            animate={{ 
-              scale: [1, 1.05, 1],
-            }}
-            transition={{ 
-              duration: 3,
-              repeat: Infinity,
-              repeatType: "reverse"
-            }}
-          >
-            <img 
-              src="/images/yly-logo.jpg" 
-              alt="YLY Logo"
-              style={{ width: '600px', height: '200px', objectFit: 'cover', borderRadius: '50%' }}
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'block';
-              }}
-            />
-            <span className="brand-logo-text" style={{ display: 'none' }}>YLY</span>
-          </motion.div>
-          <h1>مرحباً بك في YLY</h1>
-          <p>Your Life Your Story</p>
-          <p>انضم إلى مجتمعنا وكن جزءاً من القصة</p>
+        {/* Left Side - Visual/Branding */}
+        <motion.div 
+          className="auth-visual-side"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="visual-slider">
+            {slides.map((slide, index) => (
+              <motion.div
+                key={index}
+                className={`slide-item ${index === currentSlide ? 'active' : ''}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: index === currentSlide ? 1 : 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="slide-bg-image">
+                  <img src={slide.image} alt={slide.title} />
+                </div>
+              </motion.div>
+            ))}
+          </div>
           
-          <div className="brand-features">
-            <div className="feature-item">
-              <div className="feature-icon">✓</div>
-              <span>تسجيل سريع وآمن</span>
-            </div>
-            <div className="feature-item">
-              <div className="feature-icon">✓</div>
-              <span>ملف شخصي مخصص</span>
-            </div>
-            <div className="feature-item">
-              <div className="feature-icon">✓</div>
-              <span>QR Code فريد لكل عضو</span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+          <div className="visual-content">
+            <div className="orbit-container">
+              <motion.div 
+                className="center-logo"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              >
+                <img 
+                  src="/images/yly-logo.jpg" 
+                  alt="YLY Logo"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                <div className="logo-text-fallback" style={{ display: 'none' }}>YLY</div>
+              </motion.div>
 
-      <motion.div 
-        className="form-section"
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="container">
-        <motion.div className="header" variants={itemVariants}>
-          <div className="logo-container">
-            <motion.div 
-              className="logo"
-              animate={{ 
-                rotate: [0, 360],
-                scale: [1, 1.1, 1]
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                repeatDelay: 3
-              }}
-            >
-              YLY
-            </motion.div>
+              <motion.div 
+                className="orbit-icon orbit-1"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+              >
+                <div className="icon-circle icon-user">
+                  <FaUser />
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="orbit-icon orbit-2"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+              >
+                <div className="icon-circle icon-trophy">
+                  <FaTrophy />
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="orbit-icon orbit-3"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+              >
+                <div className="icon-circle icon-shield">
+                  <FaShieldAlt />
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="orbit-icon orbit-4"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+              >
+                <div className="icon-circle icon-lock">
+                  <FaLock />
+                </div>
+              </motion.div>
+            </div>
+
+            <div className="visual-text">
+              <motion.h2
+                key={currentSlide}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {slides[currentSlide].title}
+              </motion.h2>
+              <motion.p
+                key={`subtitle-${currentSlide}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                {slides[currentSlide].subtitle}
+              </motion.p>
+              <motion.p 
+                className="visual-description"
+                key={`desc-${currentSlide}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                {slides[currentSlide].description}
+              </motion.p>
+            </div>
+
+            <div className="dots-indicator">
+              {slides.map((_, index) => (
+                <button
+                  key={index}
+                  className={`dot ${index === currentSlide ? 'active' : ''}`}
+                  onClick={() => setCurrentSlide(index)}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
           </div>
-          <h1>انضم إلى مجتمعنا</h1>
-          <p>Your Life Your Story</p>
         </motion.div>
 
-        {error && (
-          <motion.div 
-            className="error-message"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-          >
-            {error}
-          </motion.div>
-        )}
-        
-        {success && (
-          <motion.div 
-            className="success-message"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-          >
-            {success}
-          </motion.div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <motion.div className="form-group" variants={itemVariants}>
-            <label htmlFor="name">
-              <FaUser className="input-icon" />
-              الاسم الكامل (بالعربي فقط)
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="أدخل اسمك الكامل بالعربي"
-              disabled={loading}
-              dir="rtl"
-            />
-          </motion.div>
-
-          <motion.div className="form-group" variants={itemVariants}>
-            <label htmlFor="email">
-              <FaEnvelope className="input-icon" />
-              البريد الإلكتروني
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="example@email.com"
-              disabled={loading}
-            />
-          </motion.div>
-
-          <motion.div className="form-group" variants={itemVariants}>
-            <label htmlFor="number">
-              <FaPhone className="input-icon" />
-              رقم الهاتف
-            </label>
-            <input
-              type="tel"
-              id="number"
-              name="number"
-              value={formData.number}
-              onChange={handleChange}
-              placeholder="+20 123 456 7890"
-              disabled={loading}
-            />
-          </motion.div>
-
-          <motion.div className="form-group" variants={itemVariants}>
-            <label htmlFor="id">
-              <FaIdCard className="input-icon" />
-              رقم الهوية (14 رقم)
-            </label>
-            <input
-              type="text"
-              id="id"
-              name="id"
-              value={formData.id}
-              onChange={handleChange}
-              placeholder="أدخل رقم الهوية (14 رقم)"
-              disabled={loading}
-              maxLength="14"
-              dir="ltr"
-            />
-            {formData.id && formData.id.length < 14 && (
-              <small style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '5px', display: 'block' }}>
-                متبقي {14 - formData.id.length} رقم
-              </small>
-            )}
-          </motion.div>
-
-          <motion.div className="form-group" variants={itemVariants}>
-            <label htmlFor="governorate">
-              <FaMapMarkerAlt className="input-icon" />
-              المحافظة
-            </label>
-            <select
-              id="governorate"
-              name="governorate"
-              value={formData.governorate}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              <option value="">اختر المحافظة</option>
-              {governorates.map((gov) => (
-                <option key={gov} value={gov}>
-                  {gov}
-                </option>
-              ))}
-            </select>
-          </motion.div>
-
-          <motion.div className="form-group" variants={itemVariants}>
-            <label htmlFor="university">
-              <FaUsers className="input-icon" />
-              الكلية / الجامعة
-            </label>
-            <input
-              type="text"
-              id="university"
-              name="university"
-              value={formData.university}
-              onChange={handleChange}
-              placeholder="مثال: كلية الهندسة - جامعة القاهرة"
-              disabled={loading}
-              dir="rtl"
-            />
-          </motion.div>
-
-          <motion.div className="form-group" variants={itemVariants}>
-            <label htmlFor="committee">
-              <FaUsers className="input-icon" />
-              اللجنة
-            </label>
-            <select
-              id="committee"
-              name="committee"
-              value={formData.committee}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              <option value="">اختر اللجنة</option>
-              {committees.map((committee) => (
-                <option key={committee} value={committee}>
-                  {committee}
-                </option>
-              ))}
-            </select>
-          </motion.div>
-
-          <motion.div className="form-group" variants={itemVariants}>
-            <label htmlFor="role">
-              <FaUserTie className="input-icon" />
-              الدور الوظيفي
-            </label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              <option value="">اختر الدور</option>
-              {roles.map((role) => (
-                <option key={role} value={role}>
-                  {role}
-                </option>
-              ))}
-            </select>
-          </motion.div>
-
-          <motion.div className="form-group" variants={itemVariants}>
-            <label htmlFor="password">
-              <FaLock className="input-icon" />
-              كلمة المرور (6 أحرف على الأقل)
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="أدخل كلمة المرور"
-                disabled={loading}
-                dir="ltr"
-                style={{ paddingLeft: '45px' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  left: '15px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#6b7280',
-                  fontSize: '1.1rem',
-                  padding: '5px'
-                }}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
+        {/* Right Side - Form */}
+        <motion.div 
+          className="auth-form-side"
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+          style={{ overflowY: 'auto', maxHeight: '90vh' }}
+        >
+          <div className="form-content">
+            <div className="form-header-glass">
+              <h2>إنشاء حساب جديد</h2>
             </div>
-          </motion.div>
 
-          <motion.div className="form-group" variants={itemVariants}>
-            <label htmlFor="confirmPassword">
-              <FaLock className="input-icon" />
-              تأكيد كلمة المرور
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="أعد إدخال كلمة المرور"
-                disabled={loading}
-                dir="ltr"
-                style={{ paddingLeft: '45px' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={{
-                  position: 'absolute',
-                  left: '15px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#6b7280',
-                  fontSize: '1.1rem',
-                  padding: '5px'
-                }}
+            {error && (
+              <motion.div 
+                className="glass-alert glass-alert-error"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
               >
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-            {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
-              <small style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '5px', display: 'block' }}>
-                كلمة المرور غير متطابقة
-              </small>
+                {error}
+              </motion.div>
             )}
-            {formData.password && formData.confirmPassword && formData.password === formData.confirmPassword && (
-              <small style={{ color: '#10b981', fontSize: '0.85rem', marginTop: '5px', display: 'block' }}>
-                ✓ كلمة المرور متطابقة
-              </small>
-            )}
-          </motion.div>
 
-          <motion.button 
-            type="submit" 
-            className="submit-btn" 
-            disabled={loading}
-            variants={itemVariants}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {loading ? (
-              <span className="loading-spinner"></span>
-            ) : (
-              'تسجيل الآن'
+            {success && (
+              <motion.div 
+                className="glass-alert glass-alert-success"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                {success}
+              </motion.div>
             )}
-          </motion.button>
-        </form>
-        </div>
+
+            <form onSubmit={handleSubmit} className="glass-form">
+              <div className="glass-input-group">
+                <div className="glass-input-wrapper">
+                  <FaUser className="glass-input-icon" />
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="الاسم الكامل (بالعربي فقط)"
+                    disabled={loading}
+                    dir="rtl"
+                    className="glass-input"
+                  />
+                </div>
+              </div>
+
+              <div className="glass-input-group">
+                <div className="glass-input-wrapper">
+                  <FaEnvelope className="glass-input-icon" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="البريد الإلكتروني"
+                    disabled={loading}
+                    dir="ltr"
+                    className="glass-input"
+                  />
+                </div>
+              </div>
+
+              <div className="glass-input-group">
+                <div className="glass-input-wrapper">
+                  <FaPhone className="glass-input-icon" />
+                  <input
+                    type="tel"
+                    name="number"
+                    value={formData.number}
+                    onChange={handleChange}
+                    placeholder="رقم الهاتف"
+                    disabled={loading}
+                    dir="ltr"
+                    className="glass-input"
+                  />
+                </div>
+              </div>
+
+              <div className="glass-input-group">
+                <div className="glass-input-wrapper">
+                  <FaIdCard className="glass-input-icon" />
+                  <input
+                    type="text"
+                    name="id"
+                    value={formData.id}
+                    onChange={handleChange}
+                    placeholder="رقم الهوية (14 رقم)"
+                    disabled={loading}
+                    maxLength="14"
+                    dir="ltr"
+                    className="glass-input"
+                  />
+                </div>
+                {formData.id && (
+                  <div className="glass-feedback">
+                    {formData.id.length === 14 ? (
+                      <span className="feedback-ok">✓ رقم صحيح</span>
+                    ) : (
+                      <span className="feedback-warn">متبقي {14 - formData.id.length} رقم</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="glass-input-group">
+                <input
+                  type="file"
+                  id="profilePhoto"
+                  accept="image/*"
+                  onChange={(e) => handleImageChange(e, 'profile')}
+                  disabled={loading}
+                  style={{ display: 'none' }}
+                />
+                <label 
+                  htmlFor="profilePhoto"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px',
+                    border: '2px dashed #2d3748',
+                    borderRadius: '14px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    background: profilePhotoPreview ? '#23283a' : '#1a1d29'
+                  }}
+                >
+                  {profilePhotoPreview ? (
+                    <div style={{ textAlign: 'center' }}>
+                      <img 
+                        src={profilePhotoPreview} 
+                        alt="Profile Preview" 
+                        style={{ 
+                          width: '100px', 
+                          height: '100px', 
+                          borderRadius: '50%', 
+                          objectFit: 'cover',
+                          marginBottom: '10px',
+                          border: '3px solid #5b6ee1'
+                        }} 
+                      />
+                      <p style={{ color: '#5b6ee1', fontWeight: '600', fontSize: '0.9rem', margin: 0 }}>
+                        ✓ تم اختيار الصورة الشخصية
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center' }}>
+                      <FaCamera style={{ fontSize: '2rem', color: '#64748b', marginBottom: '10px' }} />
+                      <p style={{ color: '#cbd5e1', fontWeight: '600', margin: 0 }}>
+                        اضغط لاختيار صورة شخصية
+                      </p>
+                    </div>
+                  )}
+                </label>
+              </div>
+
+              <div className="glass-input-group">
+                <input
+                  type="file"
+                  id="idCardPhoto"
+                  accept="image/*"
+                  onChange={(e) => handleImageChange(e, 'idCard')}
+                  disabled={loading}
+                  style={{ display: 'none' }}
+                />
+                <label 
+                  htmlFor="idCardPhoto"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px',
+                    border: '2px dashed #2d3748',
+                    borderRadius: '14px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    background: idCardPhotoPreview ? '#23283a' : '#1a1d29'
+                  }}
+                >
+                  {idCardPhotoPreview ? (
+                    <div style={{ textAlign: 'center' }}>
+                      <img 
+                        src={idCardPhotoPreview} 
+                        alt="ID Card Preview" 
+                        style={{ 
+                          maxWidth: '100%', 
+                          maxHeight: '150px', 
+                          borderRadius: '12px', 
+                          objectFit: 'contain',
+                          marginBottom: '10px',
+                          border: '2px solid #5b6ee1'
+                        }} 
+                      />
+                      <p style={{ color: '#5b6ee1', fontWeight: '600', fontSize: '0.9rem', margin: 0 }}>
+                        ✓ تم اختيار صورة البطاقة
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center' }}>
+                      <FaImage style={{ fontSize: '2rem', color: '#64748b', marginBottom: '10px' }} />
+                      <p style={{ color: '#cbd5e1', fontWeight: '600', margin: 0 }}>
+                        اضغط لاختيار صورة البطاقة
+                      </p>
+                    </div>
+                  )}
+                </label>
+              </div>
+
+              <div className="glass-input-group">
+                <div className="glass-input-wrapper">
+                  <FaMapMarkerAlt className="glass-input-icon" />
+                  <select
+                    name="governorate"
+                    value={formData.governorate}
+                    onChange={handleChange}
+                    disabled={loading}
+                    className="glass-input"
+                    style={{ paddingRight: '50px' }}
+                  >
+                    <option value="">اختر المحافظة</option>
+                    {governorates.map((gov) => (
+                      <option key={gov} value={gov}>
+                        {gov}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="glass-input-group">
+                <div className="glass-input-wrapper">
+                  <FaUsers className="glass-input-icon" />
+                  <input
+                    type="text"
+                    name="university"
+                    value={formData.university}
+                    onChange={handleChange}
+                    placeholder="الكلية / الجامعة"
+                    disabled={loading}
+                    dir="rtl"
+                    className="glass-input"
+                  />
+                </div>
+              </div>
+
+              <div className="glass-input-group">
+                <div className="glass-input-wrapper">
+                  <FaUsers className="glass-input-icon" />
+                  <select
+                    name="committee"
+                    value={formData.committee}
+                    onChange={handleChange}
+                    disabled={loading}
+                    className="glass-input"
+                    style={{ paddingRight: '50px' }}
+                  >
+                    <option value="">اختر اللجنة</option>
+                    {committees.map((committee) => (
+                      <option key={committee} value={committee}>
+                        {committee}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="glass-input-group">
+                <div className="glass-input-wrapper">
+                  <FaUserTie className="glass-input-icon" />
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    disabled={loading}
+                    className="glass-input"
+                    style={{ paddingRight: '50px' }}
+                  >
+                    <option value="">اختر الدور</option>
+                    {roles.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="glass-input-group">
+                <div className="glass-input-wrapper">
+                  <FaLock className="glass-input-icon" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="كلمة المرور (8 أحرف على الأقل)"
+                    disabled={loading}
+                    dir="ltr"
+                    className="glass-input"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="glass-toggle-btn"
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
+                {formData.password && (
+                  <div style={{ marginTop: '10px' }}>
+                    <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+                      {[1, 2, 3, 4, 5].map((level) => (
+                        <div
+                          key={level}
+                          style={{
+                            flex: 1,
+                            height: '4px',
+                            borderRadius: '2px',
+                            background: passwordStrength.strength >= (level * 20) 
+                              ? passwordStrength.strength < 40 ? '#ef4444' 
+                              : passwordStrength.strength < 70 ? '#f59e0b' 
+                              : '#34d399'
+                              : '#2d3748',
+                            transition: 'all 0.3s ease'
+                          }}
+                        />
+                      ))}
+                    </div>
+                    {passwordStrength.level && (
+                      <div className="glass-feedback">
+                        <span style={{ 
+                          color: passwordStrength.strength < 40 ? '#ef4444' 
+                            : passwordStrength.strength < 70 ? '#f59e0b' 
+                            : '#34d399'
+                        }}>
+                          {passwordStrength.level}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="glass-input-group">
+                <div className="glass-input-wrapper">
+                  <FaLock className="glass-input-icon" />
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="تأكيد كلمة المرور"
+                    disabled={loading}
+                    dir="ltr"
+                    className="glass-input"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="glass-toggle-btn"
+                  >
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
+                {formData.password && formData.confirmPassword && (
+                  <div className="glass-feedback">
+                    {formData.password === formData.confirmPassword ? (
+                      <span className="feedback-ok">✓ كلمة المرور متطابقة</span>
+                    ) : (
+                      <span className="feedback-warn">كلمة المرور غير متطابقة</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <motion.button 
+                type="submit" 
+                className="glass-submit-btn"
+                disabled={loading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {loading ? (
+                  <span className="glass-spinner"></span>
+                ) : (
+                  <>
+                    <FaShieldAlt />
+                    <span>تسجيل الآن</span>
+                  </>
+                )}
+              </motion.button>
+
+              <div className="glass-footer">
+                <p>لديك حساب بالفعل؟</p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="glass-link-btn"
+                >
+                  تسجيل الدخول
+                </button>
+              </div>
+            </form>
+          </div>
+        </motion.div>
       </motion.div>
     </div>
   );

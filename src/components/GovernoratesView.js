@@ -2,14 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { motion } from 'framer-motion';
-import { FaMapMarkerAlt, FaUsers, FaChartBar, FaArrowLeft } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaMapMarkerAlt, FaUsers, FaChartBar, FaArrowLeft, 
+  FaMoon, FaSun, FaSearch, FaFilter, FaTrophy, FaStar,
+  FaUserFriends, FaBuilding, FaChevronRight
+} from 'react-icons/fa';
+import { useTheme } from '../context/ThemeContext';
 import '../styles/GovernoratesView.css';
 
 function GovernoratesView() {
   const navigate = useNavigate();
+  const { darkMode, toggleDarkMode } = useTheme();
   const [governoratesData, setGovernoratesData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredData, setFilteredData] = useState([]);
+  const [sortBy, setSortBy] = useState('members'); // members, name, committees
+  const [viewMode, setViewMode] = useState('grid'); // grid, list
 
   const governorates = [
     'القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'البحر الأحمر',
@@ -23,6 +33,28 @@ function GovernoratesView() {
   useEffect(() => {
     fetchGovernoratesData();
   }, []);
+
+  useEffect(() => {
+    let filtered = [...governoratesData];
+    
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(gov =>
+        gov.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Sort
+    if (sortBy === 'members') {
+      filtered.sort((a, b) => b.totalMembers - a.totalMembers);
+    } else if (sortBy === 'name') {
+      filtered.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+    } else if (sortBy === 'committees') {
+      filtered.sort((a, b) => Object.keys(b.committees).length - Object.keys(a.committees).length);
+    }
+    
+    setFilteredData(filtered);
+  }, [searchTerm, governoratesData, sortBy]);
 
   const fetchGovernoratesData = async () => {
     setLoading(true);
@@ -61,6 +93,7 @@ function GovernoratesView() {
       for (const gov of governorates) {
         const users = usersByGov[gov] || [];
         const committees = {};
+        let totalPoints = 0;
         
         users.forEach(user => {
           const committee = user.committee || 'غير محدد';
@@ -68,18 +101,18 @@ function GovernoratesView() {
             committees[committee] = 0;
           }
           committees[committee]++;
+          totalPoints += user.points || 0;
         });
 
         data.push({
           name: gov,
           totalMembers: users.length,
           committees: committees,
-          users: users
+          users: users,
+          totalPoints: totalPoints
         });
       }
 
-      // ترتيب حسب عدد الأعضاء
-      data.sort((a, b) => b.totalMembers - a.totalMembers);
       setGovernoratesData(data);
     } catch (error) {
       console.error('Error fetching governorates data:', error);
@@ -88,24 +121,10 @@ function GovernoratesView() {
     }
   };
 
-  const getGradientColor = (index) => {
-    const gradients = [
-      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-      'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-      'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-      'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-      'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-      'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-      'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-    ];
-    return gradients[index % gradients.length];
-  };
-
   if (loading) {
     return (
-      <div className="governorates-page">
-        <div className="loading">
+      <div className={`governorates-page ${darkMode ? 'dark' : ''}`}>
+        <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>جاري تحميل بيانات المحافظات...</p>
         </div>
@@ -113,11 +132,16 @@ function GovernoratesView() {
     );
   }
 
+  const totalMembers = governoratesData.reduce((sum, gov) => sum + gov.totalMembers, 0);
+  const totalCommittees = governoratesData.reduce((sum, gov) => sum + Object.keys(gov.committees).length, 0);
+  const totalPoints = governoratesData.reduce((sum, gov) => sum + gov.totalPoints, 0);
+
   return (
-    <div className="governorates-page">
+    <div className={`governorates-page ${darkMode ? 'dark' : ''}`}>
       <div className="governorates-container">
+        {/* Top Bar */}
         <motion.div 
-          className="page-header"
+          className="gov-topbar"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -125,76 +149,223 @@ function GovernoratesView() {
             className="back-btn"
             onClick={() => navigate('/admin')}
           >
-            <FaArrowLeft /> رجوع
+            <FaArrowLeft />
+            <span>العودة للوحة التحكم</span>
           </button>
-          <div>
-            <h1>المحافظات</h1>
-            <p>اختر محافظة لعرض اللجان والأعضاء</p>
-          </div>
-          <div className="total-stats">
-            <FaUsers />
-            <span>{governoratesData.reduce((sum, gov) => sum + gov.totalMembers, 0)} عضو</span>
+
+          <div className="topbar-actions">
+            <button className="icon-btn" onClick={toggleDarkMode}>
+              {darkMode ? <FaSun /> : <FaMoon />}
+            </button>
           </div>
         </motion.div>
 
-        <div className="governorates-grid">
-          {governoratesData.map((gov, index) => (
-            <motion.div
-              key={gov.name}
-              className="governorate-card"
-              initial={{ opacity: 0, y: 50, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ 
-                delay: index * 0.05,
-                type: "spring",
-                stiffness: 100
-              }}
-              whileHover={{ 
-                scale: 1.03,
-                y: -8
-              }}
-              onClick={() => navigate(`/admin/governorate/${gov.name}`)}
-            >
-              <div className="gov-card-header" style={{ background: getGradientColor(index) }}>
-                <FaMapMarkerAlt className="gov-icon" />
-                <h2>{gov.name}</h2>
-              </div>
+        {/* Header Section */}
+        <motion.div 
+          className="gov-header-modern"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <div className="header-title-section">
+            <div className="header-icon-large">
+              <FaMapMarkerAlt />
+            </div>
+            <div>
+              <h1>محافظات مصر</h1>
+              <p>إدارة ومتابعة جميع المحافظات واللجان والأعضاء</p>
+            </div>
+          </div>
+        </motion.div>
 
-              <div className="gov-card-body">
-                <div className="gov-stat">
-                  <FaUsers className="stat-icon" />
-                  <div className="stat-info">
-                    <span className="stat-value">{gov.totalMembers}</span>
-                    <span className="stat-label">إجمالي الأعضاء</span>
-                  </div>
-                </div>
+        {/* Stats Overview */}
+        <div className="stats-overview-grid">
+          <motion.div 
+            className="stat-card-modern"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="stat-icon-wrapper governorates">
+              <FaMapMarkerAlt />
+            </div>
+            <div className="stat-content">
+              <h3>{governoratesData.length}</h3>
+              <p>محافظة</p>
+            </div>
+          </motion.div>
 
-                <div className="gov-stat">
-                  <FaChartBar className="stat-icon" />
-                  <div className="stat-info">
-                    <span className="stat-value">{Object.keys(gov.committees).length}</span>
-                    <span className="stat-label">عدد اللجان</span>
-                  </div>
-                </div>
+          <motion.div 
+            className="stat-card-modern"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="stat-icon-wrapper members">
+              <FaUsers />
+            </div>
+            <div className="stat-content">
+              <h3>{totalMembers.toLocaleString()}</h3>
+              <p>إجمالي الأعضاء</p>
+            </div>
+          </motion.div>
 
-                <div className="committees-preview">
-                  <h4>اللجان:</h4>
-                  <div className="committees-list">
-                    {Object.entries(gov.committees).map(([committee, count]) => (
-                      <span key={committee} className="committee-badge">
-                        {committee} ({count})
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+          <motion.div 
+            className="stat-card-modern"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <div className="stat-icon-wrapper committees">
+              <FaBuilding />
+            </div>
+            <div className="stat-content">
+              <h3>{totalCommittees}</h3>
+              <p>إجمالي اللجان</p>
+            </div>
+          </motion.div>
 
-              <div className="gov-card-footer">
-                <span className="view-details">عرض التفاصيل →</span>
-              </div>
-            </motion.div>
-          ))}
+          <motion.div 
+            className="stat-card-modern"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="stat-icon-wrapper points">
+              <FaTrophy />
+            </div>
+            <div className="stat-content">
+              <h3>{totalPoints.toLocaleString()}</h3>
+              <p>إجمالي النقاط</p>
+            </div>
+          </motion.div>
         </div>
+
+        {/* Filters and Search */}
+        <motion.div 
+          className="filters-section-modern"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <div className="search-box-modern">
+            <FaSearch />
+            <input 
+              type="text" 
+              placeholder="ابحث عن محافظة..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="filter-controls">
+            <select 
+              className="sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="members">الأكثر أعضاء</option>
+              <option value="name">الترتيب الأبجدي</option>
+              <option value="committees">الأكثر لجان</option>
+            </select>
+          </div>
+        </motion.div>
+
+        {/* Governorates Grid */}
+        <AnimatePresence>
+          <div className="governorates-grid-modern">
+            {filteredData.map((gov, index) => (
+              <motion.div
+                key={gov.name}
+                className="governorate-card-modern"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ delay: index * 0.05 }}
+                onClick={() => navigate(`/admin/governorate/${gov.name}`)}
+              >
+                <div className="gov-card-header-modern">
+                  <div className="gov-icon-modern">
+                    <FaMapMarkerAlt />
+                  </div>
+                  <h2>{gov.name}</h2>
+                  <div className="gov-rank">
+                    <FaStar />
+                    <span>#{index + 1}</span>
+                  </div>
+                </div>
+
+                <div className="gov-card-body-modern">
+                  <div className="gov-stats-row">
+                    <div className="gov-stat-item">
+                      <FaUsers className="stat-icon-small" />
+                      <div>
+                        <span className="stat-number">{gov.totalMembers}</span>
+                        <span className="stat-label">عضو</span>
+                      </div>
+                    </div>
+
+                    <div className="gov-stat-item">
+                      <FaBuilding className="stat-icon-small" />
+                      <div>
+                        <span className="stat-number">{Object.keys(gov.committees).length}</span>
+                        <span className="stat-label">لجنة</span>
+                      </div>
+                    </div>
+
+                    <div className="gov-stat-item">
+                      <FaTrophy className="stat-icon-small" />
+                      <div>
+                        <span className="stat-number">{gov.totalPoints}</span>
+                        <span className="stat-label">نقطة</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {Object.keys(gov.committees).length > 0 && (
+                    <div className="committees-preview-modern">
+                      <h4>اللجان الرئيسية:</h4>
+                      <div className="committees-tags">
+                        {Object.entries(gov.committees)
+                          .sort((a, b) => b[1] - a[1])
+                          .slice(0, 3)
+                          .map(([committee, count]) => (
+                            <span key={committee} className="committee-tag">
+                              {committee} <span className="count">({count})</span>
+                            </span>
+                          ))}
+                        {Object.keys(gov.committees).length > 3 && (
+                          <span className="more-committees">
+                            +{Object.keys(gov.committees).length - 3} أخرى
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="gov-card-footer-modern">
+                  <span className="view-details-btn">
+                    عرض التفاصيل
+                    <FaChevronRight />
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </AnimatePresence>
+
+        {filteredData.length === 0 && (
+          <motion.div 
+            className="no-results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <FaSearch style={{ fontSize: '4rem', opacity: 0.3, marginBottom: '20px' }} />
+            <h3>لا توجد نتائج</h3>
+            <p>لم يتم العثور على محافظات تطابق بحثك</p>
+          </motion.div>
+        )}
       </div>
     </div>
   );

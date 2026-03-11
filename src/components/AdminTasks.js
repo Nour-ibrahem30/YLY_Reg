@@ -53,11 +53,7 @@ function AdminTasks() {
       
       if (result.success) {
         // Add points for task approval
-        await addTaskApprovalPoints(task.userId, {
-          name: task.userName,
-          governorate: task.userGovernorate,
-          committee: task.userCommittee
-        });
+        await addTaskApprovalPoints(task.userId);
         
         setMessage({ type: 'success', text: 'تم قبول المهمة بنجاح! (+30 نقطة للمستخدم)' });
         loadTasks();
@@ -65,6 +61,7 @@ function AdminTasks() {
         setMessage({ type: 'error', text: result.error });
       }
     } catch (error) {
+      console.error('Error approving task:', error);
       setMessage({ type: 'error', text: 'حدث خطأ أثناء قبول المهمة' });
     }
   };
@@ -118,7 +115,7 @@ function AdminTasks() {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #003DA5 0%, #002D7A 100%)',
+        background: '#1a1d29',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -128,8 +125,8 @@ function AdminTasks() {
           <div style={{
             width: '60px',
             height: '60px',
-            border: '5px solid rgba(255, 255, 255, 0.3)',
-            borderTop: '5px solid white',
+            border: '5px solid rgba(91, 110, 225, 0.3)',
+            borderTop: '5px solid #5b6ee1',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
             margin: '0 auto 20px'
@@ -143,7 +140,7 @@ function AdminTasks() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #003DA5 0%, #002D7A 100%)',
+      background: '#1a1d29',
       padding: '40px 20px'
     }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
@@ -156,10 +153,10 @@ function AdminTasks() {
             justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: '30px',
-            padding: '20px',
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '16px',
+            padding: '28px',
+            background: '#23283a',
+            border: '1px solid #2d3748',
+            borderRadius: '20px',
             flexWrap: 'wrap',
             gap: '15px'
           }}
@@ -168,7 +165,7 @@ function AdminTasks() {
             <h1 style={{ color: 'white', fontSize: '2rem', fontWeight: '900', marginBottom: '5px' }}>
               المهام المرفوعة
             </h1>
-            <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '1rem' }}>
+            <p style={{ color: '#94a3b8', fontSize: '1rem' }}>
               إجمالي المهام: {tasks.length}
             </p>
           </div>
@@ -176,16 +173,25 @@ function AdminTasks() {
             onClick={() => navigate('/admin')}
             style={{
               padding: '12px 24px',
-              background: 'rgba(255, 255, 255, 0.15)',
+              background: 'rgba(255, 255, 255, 0.05)',
               color: 'white',
-              border: '2px solid rgba(255, 255, 255, 0.3)',
+              border: '1px solid #2d3748',
               borderRadius: '12px',
               cursor: 'pointer',
               fontWeight: '700',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              fontFamily: 'Cairo, sans-serif'
+              fontFamily: 'Cairo, sans-serif',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'rgba(91, 110, 225, 0.1)';
+              e.target.style.borderColor = '#5b6ee1';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+              e.target.style.borderColor = '#2d3748';
             }}
           >
             <FaArrowLeft /> رجوع
@@ -233,15 +239,16 @@ function AdminTasks() {
               style={{
                 padding: '12px 24px',
                 background: filter === item.value 
-                  ? 'linear-gradient(135deg, #E31E24 0%, #B71C1C 100%)'
-                  : 'rgba(255, 255, 255, 0.1)',
+                  ? 'linear-gradient(135deg, #5b6ee1 0%, #7c3aed 100%)'
+                  : 'rgba(255, 255, 255, 0.05)',
                 color: 'white',
-                border: filter === item.value ? 'none' : '2px solid rgba(255, 255, 255, 0.3)',
+                border: filter === item.value ? 'none' : '1px solid #2d3748',
                 borderRadius: '12px',
                 cursor: 'pointer',
                 fontWeight: '700',
                 fontFamily: 'Cairo, sans-serif',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: filter === item.value ? '0 4px 12px rgba(91, 110, 225, 0.3)' : 'none'
               }}
             >
               {item.label} ({item.count})
@@ -254,9 +261,10 @@ function AdminTasks() {
           <div style={{
             textAlign: 'center',
             padding: '60px 20px',
-            background: 'rgba(255, 255, 255, 0.95)',
-            borderRadius: '16px',
-            color: '#6b7280'
+            background: '#23283a',
+            border: '1px solid #2d3748',
+            borderRadius: '20px',
+            color: '#94a3b8'
           }}>
             <FaFileAlt style={{ fontSize: '4rem', marginBottom: '20px', opacity: 0.5 }} />
             <p style={{ fontSize: '1.2rem', fontWeight: '600' }}>لا توجد مهام</p>
@@ -265,7 +273,7 @@ function AdminTasks() {
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-            gap: '20px'
+            gap: '24px'
           }}>
             {filteredTasks.map((task, index) => (
               <motion.div
@@ -274,20 +282,32 @@ function AdminTasks() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 style={{
-                  background: 'white',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+                  background: '#23283a',
+                  border: '1px solid #2d3748',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-8px)';
+                  e.currentTarget.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.4)';
+                  e.currentTarget.style.borderColor = '#5b6ee1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.borderColor = '#2d3748';
                 }}
               >
                 {/* Task Header */}
                 <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                   <div>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#1a202c', marginBottom: '5px' }}>
-                      <FaUser style={{ marginLeft: '8px', color: '#003DA5' }} />
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'white', marginBottom: '5px' }}>
+                      <FaUser style={{ marginLeft: '8px', color: '#5b6ee1' }} />
                       {task.userName}
                     </h3>
-                    <p style={{ fontSize: '0.9rem', color: '#6b7280' }}>
+                    <p style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
                       {task.userGovernorate} - {task.userCommittee}
                     </p>
                   </div>
@@ -295,8 +315,8 @@ function AdminTasks() {
                 </div>
 
                 {/* Task Info */}
-                <div style={{ marginBottom: '15px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
-                  <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '5px' }}>
+                <div style={{ marginBottom: '15px', padding: '12px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid #2d3748', borderRadius: '12px' }}>
+                  <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '5px' }}>
                     <FaCalendar style={{ marginLeft: '5px' }} />
                     {new Date(task.uploadedAt || task.createdAt).toLocaleDateString('ar-EG', {
                       year: 'numeric',
@@ -306,7 +326,7 @@ function AdminTasks() {
                       minute: '2-digit'
                     })}
                   </p>
-                  <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+                  <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
                     <FaFileAlt style={{ marginLeft: '5px' }} />
                     {task.fileName}
                   </p>
@@ -321,10 +341,10 @@ function AdminTasks() {
                     style={{
                       flex: 1,
                       padding: '10px',
-                      background: '#003DA5',
+                      background: 'linear-gradient(135deg, #5b6ee1 0%, #7c3aed 100%)',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '8px',
+                      borderRadius: '12px',
                       cursor: 'pointer',
                       fontWeight: '700',
                       fontFamily: 'Cairo, sans-serif',
@@ -333,7 +353,9 @@ function AdminTasks() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '5px'
+                      gap: '5px',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 12px rgba(91, 110, 225, 0.3)'
                     }}
                   >
                     <FaEye /> عرض
@@ -346,17 +368,19 @@ function AdminTasks() {
                         style={{
                           flex: 1,
                           padding: '10px',
-                          background: '#10b981',
+                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                           color: 'white',
                           border: 'none',
-                          borderRadius: '8px',
+                          borderRadius: '12px',
                           cursor: 'pointer',
                           fontWeight: '700',
                           fontFamily: 'Cairo, sans-serif',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '5px'
+                          gap: '5px',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
                         }}
                       >
                         <FaCheckCircle /> قبول
@@ -366,17 +390,19 @@ function AdminTasks() {
                         style={{
                           flex: 1,
                           padding: '10px',
-                          background: '#ef4444',
+                          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                           color: 'white',
                           border: 'none',
-                          borderRadius: '8px',
+                          borderRadius: '12px',
                           cursor: 'pointer',
                           fontWeight: '700',
                           fontFamily: 'Cairo, sans-serif',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '5px'
+                          gap: '5px',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
                         }}
                       >
                         <FaTimesCircle /> رفض
@@ -389,11 +415,12 @@ function AdminTasks() {
                 {task.reviewNotes && (
                   <div style={{
                     marginTop: '15px',
-                    padding: '10px',
-                    background: '#fef3c7',
-                    borderRadius: '8px',
+                    padding: '12px',
+                    background: 'rgba(251, 191, 36, 0.1)',
+                    border: '1px solid rgba(251, 191, 36, 0.3)',
+                    borderRadius: '12px',
                     fontSize: '0.85rem',
-                    color: '#92400e'
+                    color: '#fbbf24'
                   }}>
                     <strong>ملاحظات:</strong> {task.reviewNotes}
                   </div>

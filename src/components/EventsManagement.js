@@ -36,7 +36,10 @@ function EventsManagement() {
     name: '',
     description: '',
     date: '',
-    location: ''
+    location: '',
+    maxParticipants: '',
+    isPrivate: false,
+    selectedUsers: []
   });
 
   useEffect(() => {
@@ -86,7 +89,10 @@ function EventsManagement() {
       name: '',
       description: '',
       date: '',
-      location: ''
+      location: '',
+      maxParticipants: '',
+      isPrivate: false,
+      selectedUsers: []
     });
     setShowModal(true);
     setMessage({ type: '', text: '' });
@@ -99,7 +105,10 @@ function EventsManagement() {
       name: event.name,
       description: event.description,
       date: event.date,
-      location: event.location
+      location: event.location,
+      maxParticipants: event.maxParticipants || '',
+      isPrivate: event.isPrivate || false,
+      selectedUsers: event.selectedUsers || []
     });
     setShowModal(true);
     setMessage({ type: '', text: '' });
@@ -112,7 +121,10 @@ function EventsManagement() {
       name: '',
       description: '',
       date: '',
-      location: ''
+      location: '',
+      maxParticipants: '',
+      isPrivate: false,
+      selectedUsers: []
     });
     setMessage({ type: '', text: '' });
   };
@@ -398,6 +410,52 @@ function EventsManagement() {
                       />
                     </div>
                   </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>الحد الأقصى للمشاركين (اختياري)</label>
+                      <input
+                        type="number"
+                        name="maxParticipants"
+                        value={formData.maxParticipants}
+                        onChange={handleInputChange}
+                        placeholder="اترك فارغاً لعدد غير محدود"
+                        min="1"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          name="isPrivate"
+                          checked={formData.isPrivate}
+                          onChange={(e) => setFormData(prev => ({ ...prev, isPrivate: e.target.checked }))}
+                          style={{ width: 'auto', cursor: 'pointer' }}
+                        />
+                        فعالية خاصة (لأعضاء محددين فقط)
+                      </label>
+                    </div>
+                  </div>
+
+                  {formData.isPrivate && (
+                    <div className="form-group">
+                      <label>أرقام الهوية للأعضاء المدعوين (افصل بفاصلة)</label>
+                      <textarea
+                        name="selectedUsers"
+                        value={formData.selectedUsers.join(', ')}
+                        onChange={(e) => {
+                          const users = e.target.value.split(',').map(u => u.trim()).filter(u => u);
+                          setFormData(prev => ({ ...prev, selectedUsers: users }));
+                        }}
+                        placeholder="مثال: 12345678901234, 98765432109876"
+                        rows="3"
+                      />
+                      <small style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '5px', display: 'block' }}>
+                        أدخل أرقام الهوية (14 رقم) مفصولة بفاصلة
+                      </small>
+                    </div>
+                  )}
 
                   <div className="modal-footer">
                     <button 

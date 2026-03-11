@@ -3,11 +3,13 @@ import { motion } from 'framer-motion';
 import { collection, getDocs, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { FaUserCheck, FaUserTimes, FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie } from 'react-icons/fa';
+import Toast from './Toast';
 
 function PendingRegistrations() {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(null);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     fetchPendingUsers();
@@ -42,12 +44,17 @@ function PendingRegistrations() {
         number: user.number,
         userId: user.userId,
         governorate: user.governorate,
+        university: user.university,
         committee: user.committee,
         role: user.role,
-        password: user.password,
+        password: user.password, // Keep for backward compatibility
+        passwordHash: user.passwordHash || null, // Store hashed version
+        profilePhotoURL: user.profilePhotoURL || null,
+        idCardPhotoURL: user.idCardPhotoURL || null,
         status: 'approved',
         approvedAt: new Date().toISOString(),
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        securityVersion: user.securityVersion || '1.0'
       });
 
       // حذف من pending_registrations
@@ -55,10 +62,10 @@ function PendingRegistrations() {
 
       // تحديث القائمة
       setPendingUsers(pendingUsers.filter(u => u.id !== user.id));
-      alert('تم قبول المستخدم بنجاح!');
+      setToast({ message: 'تم قبول المستخدم بنجاح!', type: 'success' });
     } catch (error) {
       console.error('Error approving user:', error);
-      alert('حدث خطأ أثناء قبول المستخدم');
+      setToast({ message: 'حدث خطأ أثناء قبول المستخدم', type: 'error' });
     } finally {
       setProcessing(null);
     }
@@ -76,10 +83,10 @@ function PendingRegistrations() {
 
       // تحديث القائمة
       setPendingUsers(pendingUsers.filter(u => u.id !== userId));
-      alert('تم رفض المستخدم');
+      setToast({ message: 'تم رفض المستخدم', type: 'info' });
     } catch (error) {
       console.error('Error rejecting user:', error);
-      alert('حدث خطأ أثناء رفض المستخدم');
+      setToast({ message: 'حدث خطأ أثناء رفض المستخدم', type: 'error' });
     } finally {
       setProcessing(null);
     }
@@ -98,6 +105,15 @@ function PendingRegistrations() {
 
   return (
     <div className="admin-page">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+          duration={3000}
+        />
+      )}
+      
       <div className="admin-container">
         <motion.div 
           className="admin-header"
@@ -142,6 +158,7 @@ function PendingRegistrations() {
                 <thead>
                   <tr>
                     <th>#</th>
+                    <th>الصورة</th>
                     <th><FaUser /> الاسم</th>
                     <th><FaEnvelope /> البريد</th>
                     <th><FaPhone /> الهاتف</th>
@@ -162,6 +179,39 @@ function PendingRegistrations() {
                       transition={{ delay: index * 0.05 }}
                     >
                       <td>{index + 1}</td>
+                      <td>
+                        {user.profilePhotoURL ? (
+                          <img 
+                            src={user.profilePhotoURL} 
+                            alt={user.name}
+                            style={{
+                              width: '50px',
+                              height: '50px',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              border: '2px solid #2563EB',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => window.open(user.profilePhotoURL, '_blank')}
+                            title="اضغط لعرض الصورة بالحجم الكامل"
+                          />
+                        ) : (
+                          <div style={{
+                            width: '50px',
+                            height: '50px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontWeight: '700',
+                            fontSize: '1.2rem'
+                          }}>
+                            {user.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          </div>
+                        )}
+                      </td>
                       <td className="user-name">{user.name}</td>
                       <td>{user.email}</td>
                       <td>{user.number}</td>
@@ -177,7 +227,29 @@ function PendingRegistrations() {
                       </td>
                       <td>{new Date(user.createdAt).toLocaleDateString('ar-EG')}</td>
                       <td>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                          {user.idCardPhotoURL && (
+                            <button
+                              onClick={() => window.open(user.idCardPhotoURL, '_blank')}
+                              style={{
+                                padding: '8px 16px',
+                                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontFamily: 'Cairo, sans-serif',
+                                fontWeight: '600',
+                                fontSize: '0.9rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                              title="عرض صورة البطاقة"
+                            >
+                              <FaIdCard /> البطاقة
+                            </button>
+                          )}
                           <button
                             onClick={() => approveUser(user)}
                             disabled={processing === user.id}
@@ -235,3 +307,73 @@ function PendingRegistrations() {
 }
 
 export default PendingRegistrations;
+
+
+/* Responsive Styles for Pending Registrations */
+<style jsx>{`
+  @media (max-width: 1024px) {
+    .table-wrapper {
+      overflow-x: auto;
+    }
+    
+    .users-table {
+      min-width: 900px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .admin-header {
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+    
+    .admin-header h1 {
+      font-size: 2rem;
+    }
+    
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .table-wrapper {
+      border-radius: 12px;
+    }
+    
+    .users-table {
+      font-size: 0.9rem;
+    }
+    
+    .users-table th,
+    .users-table td {
+      padding: 10px 8px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .admin-page {
+      padding: 20px 10px;
+    }
+    
+    .admin-container {
+      padding: 0 10px;
+    }
+    
+    .admin-header h1 {
+      font-size: 1.7rem;
+    }
+    
+    .admin-header p {
+      font-size: 0.95rem;
+    }
+    
+    .users-table {
+      font-size: 0.85rem;
+    }
+    
+    .users-table button {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+  }
+`}</style>

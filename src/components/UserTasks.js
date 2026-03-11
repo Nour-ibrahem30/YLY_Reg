@@ -26,21 +26,41 @@ function UserTasks({ userId, userInfo }) {
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   useEffect(() => {
-    loadEvents();
-    loadUserTasks();
+    console.log('UserTasks - userId received:', userId);
+    console.log('UserTasks - userInfo received:', userInfo);
+    if (userId) {
+      loadEvents();
+      loadUserTasks();
+    }
   }, [userId]);
 
   const loadEvents = async () => {
-    const result = await getActiveEvents();
-    if (result.success) {
-      setEvents(result.events);
+    try {
+      const result = await getActiveEvents();
+      if (result.success) {
+        console.log('UserTasks - Events loaded:', result.events.length);
+        setEvents(result.events);
+      }
+    } catch (error) {
+      console.error('UserTasks - Error loading events:', error);
     }
   };
 
   const loadUserTasks = async () => {
-    const result = await getTasksByUser(userId);
-    if (result.success) {
-      setTasks(result.tasks);
+    if (!userId) {
+      console.log('UserTasks - No userId provided');
+      return;
+    }
+    
+    try {
+      console.log('UserTasks - Loading tasks for userId:', userId);
+      const result = await getTasksByUser(userId);
+      if (result.success) {
+        console.log('UserTasks - Tasks loaded:', result.tasks.length);
+        setTasks(result.tasks);
+      }
+    } catch (error) {
+      console.error('UserTasks - Error loading tasks:', error);
     }
   };
 

@@ -210,3 +210,107 @@ export const toggleEventStatus = async (eventId, currentStatus) => {
     };
   }
 };
+
+
+// RSVP to event
+export const rsvpToEvent = async (eventId, userId, response) => {
+  try {
+    console.log('RSVP - Starting:', { eventId, userId, response });
+    const rsvpRef = collection(db, 'event_rsvps');
+    
+    // Check if user already RSVP'd
+    const q = query(rsvpRef, where('eventId', '==', eventId), where('userId', '==', userId));
+    const existingRsvp = await getDocs(q);
+    
+    if (!existingRsvp.empty) {
+      // Update existing RSVP
+      const docId = existingRsvp.docs[0].id;
+      console.log('RSVP - Updating existing:', docId);
+      await updateDoc(doc(db, 'event_rsvps', docId), {
+        response,
+        updatedAt: new Date().toISOString()
+      });
+      console.log('RSVP - Updated successfully');
+    } else {
+      // Create new RSVP
+      console.log('RSVP - Creating new');
+      const newDoc = await addDoc(rsvpRef, {
+        eventId,
+        userId,
+        response,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      console.log('RSVP - Created successfully:', newDoc.id);
+    }
+
+    return {
+      success: true,
+      message: response === 'confirmed' ? 'تم تأكيد الحضور' : 'تم الاعتذار عن الحضور'
+    };
+  } catch (error) {
+    console.error('Error RSVP to event:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+// Get user RSVP for event
+export const getUserRsvp = async (eventId, userId) => {
+  try {
+    const q = query(
+      collection(db, 'event_rsvps'),
+      where('eventId', '==', eventId),
+      where('userId', '==', userId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      return {
+        success: true,
+        rsvp: {
+          id: querySnapshot.docs[0].id,
+          ...querySnapshot.docs[0].data()
+        }
+      };
+    }
+    
+    return {
+      success: true,
+      rsvp: null
+    };
+  } catch (error) {
+    console.error('Error getting user RSVP:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+// Get event RSVP count
+export const getEventRsvpCount = async (eventId) => {
+  try {
+    const q = query(
+      collection(db, 'event_rsvps'),
+      where('eventId', '==', eventId),
+      where('response', '==', 'confirmed')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    
+    return {
+      success: true,
+      count: querySnapshot.size
+    };
+  } catch (error) {
+    console.error('Error getting RSVP count:', error);
+    return {
+      success: false,
+      count: 0
+    };
+  }
+};

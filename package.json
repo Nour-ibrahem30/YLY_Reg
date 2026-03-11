@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@react-three/drei": "^9.88.0",
     "@react-three/fiber": "^8.15.0",
     "@supabase/supabase-js": "^2.98.0",

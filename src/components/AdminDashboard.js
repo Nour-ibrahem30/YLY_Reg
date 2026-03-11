@@ -4,12 +4,18 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
-import { FaUser, FaMapMarkerAlt, FaUsers, FaSearch, FaDownload, FaQrcode, FaCalendarAlt, FaClipboardList, FaUserClock, FaTh, FaTable, FaEnvelope, FaPhone, FaIdCard, FaCalendar, FaChartBar } from 'react-icons/fa';
+import { 
+  FaUser, FaMapMarkerAlt, FaUsers, FaSearch, FaDownload, FaQrcode, 
+  FaCalendarAlt, FaClipboardList, FaUserClock, FaTh, FaTable, 
+  FaEnvelope, FaPhone, FaIdCard, FaCalendar, FaChartBar, FaMoon, FaSun 
+} from 'react-icons/fa';
+import { useTheme } from '../context/ThemeContext';
 import UserCard from './UserCard';
 import UserDetailsModal from './UserDetailsModal';
 import '../styles/UserCards.css';
 
 function AdminDashboard() {
+  const { darkMode, toggleDarkMode } = useTheme();
   const [allUsers, setAllUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -19,6 +25,12 @@ function AdminDashboard() {
   const [filterCommittee, setFilterCommittee] = useState('');
   const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
   const [selectedUser, setSelectedUser] = useState(null);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalUsers: 0,
+    pendingRegistrations: 0,
+    activeEvents: 0,
+    totalTasks: 0
+  });
   
   // Refs for GSAP animations
   const headerRef = useRef(null);
@@ -80,6 +92,9 @@ function AdminDashboard() {
       console.log('Total users fetched:', users.length);
       setAllUsers(users);
       setFilteredUsers(users);
+      
+      // Fetch stats
+      await fetchStats();
     } catch (error) {
       console.error('Error fetching users:', error);
       setError('حدث خطأ في تحميل البيانات. تأكد من صلاحيات Firebase.');
@@ -87,6 +102,35 @@ function AdminDashboard() {
       setLoading(false);
     }
   }, [governorates]);
+
+  const fetchStats = async () => {
+    try {
+      // Fetch pending registrations
+      const pendingSnapshot = await getDocs(collection(db, 'pending_registrations'));
+      
+      // Fetch events
+      const eventsSnapshot = await getDocs(collection(db, 'events'));
+      const activeEvents = [];
+      eventsSnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.status === 'active') {
+          activeEvents.push(data);
+        }
+      });
+      
+      // Fetch tasks
+      const tasksSnapshot = await getDocs(collection(db, 'tasks'));
+      
+      setDashboardStats({
+        totalUsers: allUsers.length,
+        pendingRegistrations: pendingSnapshot.size,
+        activeEvents: activeEvents.length,
+        totalTasks: tasksSnapshot.size
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
 
   const filterUsers = useCallback(() => {
     let filtered = [...allUsers];
@@ -156,6 +200,7 @@ function AdminDashboard() {
   }, [filterUsers]);
 
   const exportToCSV = () => {
+    // Create CSV content with UTF-8 BOM for proper Arabic support
     const headers = ['الاسم', 'البريد الإلكتروني', 'رقم الهاتف', 'رقم الهوية', 'المحافظة', 'اللجنة', 'الدور الوظيفي', 'تاريخ التسجيل'];
     const csvData = filteredUsers.map(user => [
       user.name,
@@ -168,15 +213,17 @@ function AdminDashboard() {
       new Date(user.createdAt).toLocaleDateString('ar-EG')
     ]);
 
+    // Create CSV string
     const csvContent = [
       headers.join(','),
-      ...csvData.map(row => row.join(','))
+      ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
 
+    // Create blob with UTF-8 BOM
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `yly_members_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `yly_members_${new Date().toISOString().split('T')[0]}.xlsx`;
     link.click();
   };
 
@@ -441,7 +488,31 @@ function AdminDashboard() {
             <h1>لوحة تحكم الأدمن</h1>
             <p>إدارة أعضاء YLY</p>
           </div>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              onClick={toggleDarkMode}
+              style={{
+                padding: '12px',
+                background: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                color: darkMode ? '#fbbf24' : '#1e293b',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.2rem',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'scale(1.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'scale(1)';
+              }}
+            >
+              {darkMode ? <FaSun /> : <FaMoon />}
+            </button>
             <Link 
               to="/admin/events" 
               style={{
@@ -541,6 +612,99 @@ function AdminDashboard() {
           </div>
         </motion.div>
 
+        {/* Modern Dashboard Stats */}
+        <motion.div 
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '20px',
+            marginBottom: '30px'
+          }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <motion.div 
+            whileHover={{ scale: 1.03, y: -5 }}
+            style={{
+              background: 'linear-gradient(135deg, #003DA5 0%, #0052d4 100%)',
+              padding: '24px',
+              borderRadius: '16px',
+              color: 'white',
+              boxShadow: '0 8px 24px rgba(0, 61, 165, 0.3)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}><FaUsers /></div>
+              <h3 style={{ fontSize: '2rem', fontWeight: '800', margin: '8px 0' }}>{dashboardStats.totalUsers}</h3>
+              <p style={{ opacity: 0.9, fontSize: '1rem' }}>إجمالي المستخدمين</p>
+            </div>
+            <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '50%' }} />
+          </motion.div>
+
+          <motion.div 
+            whileHover={{ scale: 1.03, y: -5 }}
+            style={{
+              background: 'linear-gradient(135deg, #E31E24 0%, #B71C1C 100%)',
+              padding: '24px',
+              borderRadius: '16px',
+              color: 'white',
+              boxShadow: '0 8px 24px rgba(227, 30, 36, 0.3)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}><FaUserClock /></div>
+              <h3 style={{ fontSize: '2rem', fontWeight: '800', margin: '8px 0' }}>{dashboardStats.pendingRegistrations}</h3>
+              <p style={{ opacity: 0.9, fontSize: '1rem' }}>طلبات معلقة</p>
+            </div>
+            <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '50%' }} />
+          </motion.div>
+
+          <motion.div 
+            whileHover={{ scale: 1.03, y: -5 }}
+            style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              padding: '24px',
+              borderRadius: '16px',
+              color: 'white',
+              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}><FaCalendarAlt /></div>
+              <h3 style={{ fontSize: '2rem', fontWeight: '800', margin: '8px 0' }}>{dashboardStats.activeEvents}</h3>
+              <p style={{ opacity: 0.9, fontSize: '1rem' }}>فعاليات نشطة</p>
+            </div>
+            <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '50%' }} />
+          </motion.div>
+
+          <motion.div 
+            whileHover={{ scale: 1.03, y: -5 }}
+            style={{
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              padding: '24px',
+              borderRadius: '16px',
+              color: 'white',
+              boxShadow: '0 8px 24px rgba(245, 158, 11, 0.3)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}><FaClipboardList /></div>
+              <h3 style={{ fontSize: '2rem', fontWeight: '800', margin: '8px 0' }}>{dashboardStats.totalTasks}</h3>
+              <p style={{ opacity: 0.9, fontSize: '1rem' }}>إجمالي المهام</p>
+            </div>
+            <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '50%' }} />
+          </motion.div>
+        </motion.div>
+
         {/* Statistics Cards */}
         <div className="stats-grid" ref={statsRef}>
           <motion.div 
@@ -630,7 +794,7 @@ function AdminDashboard() {
           </select>
 
           <button onClick={exportToCSV} className="export-btn">
-            <FaDownload /> تصدير Excel
+            <FaDownload /> تصدير XLSX
           </button>
 
           <div style={{ display: 'flex', gap: '10px' }}>

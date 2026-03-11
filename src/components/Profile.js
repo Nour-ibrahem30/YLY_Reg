@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { QRCodeSVG } from 'qrcode.react';
-import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaCalendar, FaDownload, FaArrowLeft } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaCalendar, FaDownload, FaArrowLeft, FaShieldAlt } from 'react-icons/fa';
 import UserEvents from './UserEvents';
 import UserTasks from './UserTasks';
 
 function Profile() {
   const { governorate, id } = useParams();
+  const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -159,7 +160,8 @@ function Profile() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center'
-    }}>
+    }}
+    className="profile-page">
       <div style={{ 
         background: 'white', 
         borderRadius: '30px', 
@@ -167,12 +169,80 @@ function Profile() {
         maxWidth: '1200px', 
         width: '100%',
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)'
-      }}>
+      }}
+      className="profile-container">
+        {/* Security Settings Button */}
+        <div style={{
+          position: 'absolute',
+          top: '30px',
+          left: '30px',
+          display: 'flex',
+          gap: '15px'
+        }}>
+          <Link
+            to={`/security-settings/${userData.userId}`}
+            style={{
+              padding: '14px 24px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '12px',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+              transition: 'all 0.3s ease',
+              fontSize: '1rem'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.3)';
+            }}
+          >
+            <FaShieldAlt />
+            إعدادات الأمان
+          </Link>
+          
+          <Link
+            to="/"
+            style={{
+              padding: '14px 24px',
+              background: 'white',
+              color: '#374151',
+              textDecoration: 'none',
+              borderRadius: '12px',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              border: '2px solid #e5e7eb',
+              transition: 'all 0.3s ease',
+              fontSize: '1rem'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = '#f9fafb';
+              e.target.style.borderColor = '#d1d5db';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'white';
+              e.target.style.borderColor = '#e5e7eb';
+            }}
+          >
+            <FaArrowLeft />
+            رجوع
+          </Link>
+        </div>
+
         <div style={{ textAlign: 'center', marginBottom: '50px', paddingBottom: '40px', borderBottom: '2px solid #f3f4f6' }}>
           <div style={{
             width: '140px',
             height: '140px',
-            background: 'linear-gradient(135deg, #0066ff 0%, #00ccff 100%)',
+            background: userData.profilePhotoURL ? 'transparent' : 'linear-gradient(135deg, #0066ff 0%, #00ccff 100%)',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
@@ -180,18 +250,41 @@ function Profile() {
             margin: '0 auto 30px',
             fontSize: '4rem',
             color: 'white',
-            fontWeight: '900'
-          }}>
-            {getInitials(userData.name)}
+            fontWeight: '900',
+            overflow: 'hidden',
+            border: '4px solid #e6f0ff'
+          }}
+          className="profile-avatar">
+            {userData.profilePhotoURL ? (
+              <img 
+                src={userData.profilePhotoURL} 
+                alt={userData.name}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.style.background = 'linear-gradient(135deg, #0066ff 0%, #00ccff 100%)';
+                  e.target.parentElement.innerHTML = getInitials(userData.name);
+                }}
+              />
+            ) : (
+              getInitials(userData.name)
+            )}
           </div>
-          <h1 style={{ color: '#001845', fontSize: '2.5rem', marginBottom: '10px', fontWeight: '800' }}>
+          <h1 style={{ color: '#001845', fontSize: '2.5rem', marginBottom: '10px', fontWeight: '800' }}
+          className="profile-name">
             {userData.name}
           </h1>
           <p style={{ color: '#6b7280', fontWeight: 500 }}>عضو في مجتمع YLY</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '50px', marginTop: '40px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '50px', marginTop: '40px' }}
+        className="profile-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}
+          className="profile-info-grid">
             <div style={{ padding: '24px', background: 'rgba(255, 255, 255, 0.8)', borderRadius: '16px', border: '2px solid #e6f0ff' }}>
               <div style={{ fontWeight: '700', color: '#0099ff', fontSize: '0.85rem', marginBottom: '8px' }}>
                 <FaUser style={{ marginLeft: '5px' }} /> الاسم
@@ -322,3 +415,71 @@ function Profile() {
 }
 
 export default Profile;
+
+/* Profile Responsive Styles */
+<style jsx>{`
+  @media (max-width: 1024px) {
+    .profile-page {
+      padding: 40px 20px !important;
+    }
+    
+    .profile-container {
+      padding: 40px !important;
+    }
+    
+    .profile-grid {
+      grid-template-columns: 1fr !important;
+      gap: 30px !important;
+    }
+    
+    .profile-info-grid {
+      grid-template-columns: 1fr 1fr !important;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .profile-page {
+      padding: 30px 15px !important;
+    }
+    
+    .profile-container {
+      padding: 30px 20px !important;
+      border-radius: 20px !important;
+    }
+    
+    .profile-avatar {
+      width: 100px !important;
+      height: 100px !important;
+      font-size: 3rem !important;
+    }
+    
+    .profile-name {
+      font-size: 2rem !important;
+    }
+    
+    .profile-info-grid {
+      grid-template-columns: 1fr !important;
+      gap: 15px !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .profile-page {
+      padding: 20px 10px !important;
+    }
+    
+    .profile-container {
+      padding: 20px 15px !important;
+    }
+    
+    .profile-avatar {
+      width: 80px !important;
+      height: 80px !important;
+      font-size: 2.5rem !important;
+    }
+    
+    .profile-name {
+      font-size: 1.7rem !important;
+    }
+  }
+`}</style>
