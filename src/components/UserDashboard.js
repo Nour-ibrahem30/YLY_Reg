@@ -223,12 +223,12 @@ function UserDashboard() {
               alignItems: 'center',
               marginBottom: '16px',
               paddingBottom: '12px',
-              borderBottom: `2px solid ${darkMode ? '#374151' : '#e5e7eb'}`
+              borderBottom: `2px solid ${darkMode ? '#2d3748' : '#e5e7eb'}`
             }}>
               <h3 style={{
                 fontSize: '1.2rem',
                 fontWeight: '700',
-                color: darkMode ? 'white' : '#1f2937'
+                color: darkMode ? '#ffffff' : '#1f2937'
               }}>
                 الإشعارات
               </h3>
@@ -237,7 +237,7 @@ function UserDashboard() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: darkMode ? '#9ca3af' : '#6b7280',
+                  color: darkMode ? '#94a3b8' : '#6b7280',
                   cursor: 'pointer',
                   fontSize: '1.2rem'
                 }}
@@ -250,9 +250,9 @@ function UserDashboard() {
               {/* Sample Notifications */}
               <div style={{
                 padding: '12px',
-                background: darkMode ? '#374151' : '#f3f4f6',
+                background: darkMode ? '#2d3748' : '#f3f4f6',
                 borderRadius: '8px',
-                borderRight: '4px solid #003DA5'
+                borderRight: '4px solid #5b6ee1'
               }}>
                 <div style={{
                   display: 'flex',
@@ -260,24 +260,24 @@ function UserDashboard() {
                   gap: '8px',
                   marginBottom: '6px'
                 }}>
-                  <FaCalendarAlt style={{ color: '#003DA5' }} />
+                  <FaCalendarAlt style={{ color: '#5b6ee1' }} />
                   <span style={{
                     fontWeight: '600',
-                    color: darkMode ? 'white' : '#1f2937'
+                    color: darkMode ? '#ffffff' : '#1f2937'
                   }}>
                     فعالية جديدة
                   </span>
                 </div>
                 <p style={{
                   fontSize: '0.9rem',
-                  color: darkMode ? '#d1d5db' : '#6b7280',
+                  color: darkMode ? '#cbd5e1' : '#6b7280',
                   margin: 0
                 }}>
                   تم إضافة فعالية جديدة: "ورشة عمل القيادة"
                 </p>
                 <span style={{
                   fontSize: '0.75rem',
-                  color: darkMode ? '#9ca3af' : '#9ca3af',
+                  color: darkMode ? '#94a3b8' : '#9ca3af',
                   marginTop: '4px',
                   display: 'block'
                 }}>
@@ -287,9 +287,9 @@ function UserDashboard() {
 
               <div style={{
                 padding: '12px',
-                background: darkMode ? '#374151' : '#f3f4f6',
+                background: darkMode ? '#2d3748' : '#f3f4f6',
                 borderRadius: '8px',
-                borderRight: '4px solid #E31E24'
+                borderRight: '4px solid #7c3aed'
               }}>
                 <div style={{
                   display: 'flex',
@@ -297,24 +297,24 @@ function UserDashboard() {
                   gap: '8px',
                   marginBottom: '6px'
                 }}>
-                  <FaClipboardList style={{ color: '#E31E24' }} />
+                  <FaClipboardList style={{ color: '#7c3aed' }} />
                   <span style={{
                     fontWeight: '600',
-                    color: darkMode ? 'white' : '#1f2937'
+                    color: darkMode ? '#ffffff' : '#1f2937'
                   }}>
                     مهمة جديدة
                   </span>
                 </div>
                 <p style={{
                   fontSize: '0.9rem',
-                  color: darkMode ? '#d1d5db' : '#6b7280',
+                  color: darkMode ? '#cbd5e1' : '#6b7280',
                   margin: 0
                 }}>
                   تم تعيين مهمة جديدة لك: "إعداد التقرير الشهري"
                 </p>
                 <span style={{
                   fontSize: '0.75rem',
-                  color: darkMode ? '#9ca3af' : '#9ca3af',
+                  color: darkMode ? '#94a3b8' : '#9ca3af',
                   marginTop: '4px',
                   display: 'block'
                 }}>
@@ -324,9 +324,9 @@ function UserDashboard() {
 
               <div style={{
                 padding: '12px',
-                background: darkMode ? '#374151' : '#f3f4f6',
+                background: darkMode ? '#2d3748' : '#f3f4f6',
                 borderRadius: '8px',
-                borderRight: '4px solid #10b981'
+                borderRight: '4px solid #34d399'
               }}>
                 <div style={{
                   display: 'flex',
@@ -334,24 +334,24 @@ function UserDashboard() {
                   gap: '8px',
                   marginBottom: '6px'
                 }}>
-                  <FaTrophy style={{ color: '#10b981' }} />
+                  <FaTrophy style={{ color: '#34d399' }} />
                   <span style={{
                     fontWeight: '600',
-                    color: darkMode ? 'white' : '#1f2937'
+                    color: darkMode ? '#ffffff' : '#1f2937'
                   }}>
                     إنجاز جديد
                   </span>
                 </div>
                 <p style={{
                   fontSize: '0.9rem',
-                  color: darkMode ? '#d1d5db' : '#6b7280',
+                  color: darkMode ? '#cbd5e1' : '#6b7280',
                   margin: 0
                 }}>
                   مبروك! حصلت على 50 نقطة جديدة
                 </p>
                 <span style={{
                   fontSize: '0.75rem',
-                  color: darkMode ? '#9ca3af' : '#9ca3af',
+                  color: darkMode ? '#94a3b8' : '#9ca3af',
                   marginTop: '4px',
                   display: 'block'
                 }}>
@@ -361,9 +361,9 @@ function UserDashboard() {
 
               <div style={{
                 padding: '12px',
-                background: darkMode ? '#374151' : '#f3f4f6',
+                background: darkMode ? '#2d3748' : '#f3f4f6',
                 borderRadius: '8px',
-                borderRight: '4px solid #f59e0b'
+                borderRight: '4px solid #fbbf24'
               }}>
                 <div style={{
                   display: 'flex',
@@ -371,24 +371,24 @@ function UserDashboard() {
                   gap: '8px',
                   marginBottom: '6px'
                 }}>
-                  <FaFire style={{ color: '#f59e0b' }} />
+                  <FaFire style={{ color: '#fbbf24' }} />
                   <span style={{
                     fontWeight: '600',
-                    color: darkMode ? 'white' : '#1f2937'
+                    color: darkMode ? '#ffffff' : '#1f2937'
                   }}>
                     تذكير
                   </span>
                 </div>
                 <p style={{
                   fontSize: '0.9rem',
-                  color: darkMode ? '#d1d5db' : '#6b7280',
+                  color: darkMode ? '#cbd5e1' : '#6b7280',
                   margin: 0
                 }}>
                   لديك فعالية غداً: "اجتماع اللجنة الشهري"
                 </p>
                 <span style={{
                   fontSize: '0.75rem',
-                  color: darkMode ? '#9ca3af' : '#9ca3af',
+                  color: darkMode ? '#94a3b8' : '#9ca3af',
                   marginTop: '4px',
                   display: 'block'
                 }}>
@@ -398,9 +398,9 @@ function UserDashboard() {
 
               <div style={{
                 padding: '12px',
-                background: darkMode ? '#374151' : '#f3f4f6',
+                background: darkMode ? '#2d3748' : '#f3f4f6',
                 borderRadius: '8px',
-                borderRight: '4px solid #6366f1'
+                borderRight: '4px solid #818cf8'
               }}>
                 <div style={{
                   display: 'flex',
@@ -408,24 +408,24 @@ function UserDashboard() {
                   gap: '8px',
                   marginBottom: '6px'
                 }}>
-                  <FaChartLine style={{ color: '#6366f1' }} />
+                  <FaChartLine style={{ color: '#818cf8' }} />
                   <span style={{
                     fontWeight: '600',
-                    color: darkMode ? 'white' : '#1f2937'
+                    color: darkMode ? '#ffffff' : '#1f2937'
                   }}>
                     تحديث
                   </span>
                 </div>
                 <p style={{
                   fontSize: '0.9rem',
-                  color: darkMode ? '#d1d5db' : '#6b7280',
+                  color: darkMode ? '#cbd5e1' : '#6b7280',
                   margin: 0
                 }}>
                   تم تحديث ترتيبك في لوحة المتصدرين
                 </p>
                 <span style={{
                   fontSize: '0.75rem',
-                  color: darkMode ? '#9ca3af' : '#9ca3af',
+                  color: darkMode ? '#94a3b8' : '#9ca3af',
                   marginTop: '4px',
                   display: 'block'
                 }}>
@@ -439,18 +439,27 @@ function UserDashboard() {
                 width: '100%',
                 padding: '12px',
                 marginTop: '16px',
-                background: 'linear-gradient(135deg, #003DA5 0%, #1e40af 100%)',
+                background: 'linear-gradient(135deg, #5b6ee1 0%, #7c3aed 100%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
                 cursor: 'pointer',
                 fontFamily: 'Cairo, sans-serif',
                 fontWeight: '600',
-                fontSize: '0.95rem'
+                fontSize: '0.95rem',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 8px 20px rgba(91, 110, 225, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = 'none';
               }}
               onClick={() => {
                 setShowNotifications(false);
-                // يمكن إضافة navigation لصفحة الإشعارات الكاملة
+                alert('سيتم إضافة صفحة الإشعارات الكاملة قريباً');
               }}
             >
               عرض جميع الإشعارات
