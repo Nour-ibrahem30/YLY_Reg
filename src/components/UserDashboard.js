@@ -643,7 +643,7 @@ function UserDashboard() {
                   </motion.div>
                 ))
               ) : (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                <div style={{ textAlign: 'center', padding: '40px', color: darkMode ? '#94a3b8' : '#6b7280' }}>
                   لا توجد فعاليات قادمة
                 </div>
               )}
@@ -664,7 +664,7 @@ function UserDashboard() {
             </div>
             
             <div className="activity-list">
-              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+              <div style={{ textAlign: 'center', padding: '40px', color: darkMode ? '#94a3b8' : '#6b7280' }}>
                 لا توجد أنشطة حديثة
               </div>
             </div>
