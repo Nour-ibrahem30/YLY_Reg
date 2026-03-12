@@ -116,6 +116,23 @@ function RegistrationForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // For name field, allow Arabic letters and spaces without sanitization
+    if (name === 'name') {
+      const arabicOnly = /^[\u0600-\u06FF\s]*$/;
+      if (!arabicOnly.test(value)) {
+        return;
+      }
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+      setError('');
+      setSuccess('');
+      return;
+    }
+    
+    // Sanitize input for other fields
     let sanitizedValue = sanitizeInput(value);
     
     const attackCheck = detectAttackPatterns(sanitizedValue);
@@ -123,13 +140,6 @@ function RegistrationForm() {
       console.warn(`Attack detected in ${name}: ${attackCheck.type}`);
       setError(`تم اكتشاف محاولة غير صالحة في حقل ${name === 'name' ? 'الاسم' : name}`);
       return;
-    }
-    
-    if (name === 'name') {
-      const arabicOnly = /^[\u0600-\u06FF\s]*$/;
-      if (!arabicOnly.test(sanitizedValue)) {
-        return;
-      }
     }
     
     if (name === 'id') {
