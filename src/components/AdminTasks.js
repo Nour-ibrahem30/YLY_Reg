@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { FaArrowLeft, FaCheckCircle, FaTimesCircle, FaDownload, FaTrash, FaEye, FaUser, FaCalendar, FaFileAlt } from 'react-icons/fa';
 import { updateTaskStatus } from '../services/taskService';
 import { addTaskApprovalPoints } from '../services/pointsService';
+import Sidebar from './Sidebar';
 
 function AdminTasks() {
   const navigate = useNavigate();
@@ -113,90 +114,81 @@ function AdminTasks() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: '#1a1d29',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            border: '5px solid rgba(91, 110, 225, 0.3)',
-            borderTop: '5px solid #5b6ee1',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 20px'
-          }}></div>
-          <p style={{ fontSize: '1.2rem' }}>جاري تحميل المهام...</p>
+      <div className="app-container">
+        <Sidebar isAdmin={true} />
+        <div className="main-content">
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>جاري تحميل المهام...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#1a1d29',
-      padding: '40px 20px'
-    }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '30px',
-            padding: '28px',
-            background: '#23283a',
-            border: '1px solid #2d3748',
-            borderRadius: '20px',
-            flexWrap: 'wrap',
-            gap: '15px'
-          }}
-        >
-          <div>
-            <h1 style={{ color: 'white', fontSize: '2rem', fontWeight: '900', marginBottom: '5px' }}>
-              المهام المرفوعة
-            </h1>
-            <p style={{ color: '#94a3b8', fontSize: '1rem' }}>
-              إجمالي المهام: {tasks.length}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/admin')}
-            style={{
-              padding: '12px 24px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              color: 'white',
-              border: '1px solid #2d3748',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontWeight: '700',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontFamily: 'Cairo, sans-serif',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = 'rgba(91, 110, 225, 0.1)';
-              e.target.style.borderColor = '#5b6ee1';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-              e.target.style.borderColor = '#2d3748';
-            }}
-          >
-            <FaArrowLeft /> رجوع
-          </button>
-        </motion.div>
+    <div className="app-container">
+      <Sidebar isAdmin={true} />
+      <div className="main-content">
+        <div style={{
+          minHeight: '100vh',
+          background: '#1a1d29',
+          padding: '40px 20px'
+        }}>
+          <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '30px',
+                padding: '28px',
+                background: '#23283a',
+                border: '1px solid #2d3748',
+                borderRadius: '20px',
+                flexWrap: 'wrap',
+                gap: '15px'
+              }}
+            >
+              <div>
+                <h1 style={{ color: 'white', fontSize: '2rem', fontWeight: '900', marginBottom: '5px' }}>
+                  المهام المرفوعة
+                </h1>
+                <p style={{ color: '#94a3b8', fontSize: '1rem' }}>
+                  إجمالي المهام: {tasks.length}
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/admin')}
+                style={{
+                  padding: '12px 24px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  color: 'white',
+                  border: '1px solid #2d3748',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontFamily: 'Cairo, sans-serif',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(91, 110, 225, 0.1)';
+                  e.target.style.borderColor = '#5b6ee1';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                  e.target.style.borderColor = '#2d3748';
+                }}
+              >
+                <FaArrowLeft /> رجوع
+              </button>
+            </motion.div>
 
         {/* Message */}
         {message.text && (
@@ -429,6 +421,8 @@ function AdminTasks() {
             ))}
           </div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { FaUserCheck, FaUserTimes, FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie } from 'react-icons/fa';
+import { FaUserCheck, FaUserTimes, FaUser, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie, FaArrowLeft } from 'react-icons/fa';
+import Sidebar from './Sidebar';
 import Toast from './Toast';
 
 function PendingRegistrations() {
+  const navigate = useNavigate();
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(null);
@@ -94,27 +97,49 @@ function PendingRegistrations() {
 
   if (loading) {
     return (
-      <div className="admin-page">
-        <div className="loading">
-          <div className="loading-spinner"></div>
-          <p style={{ marginTop: '20px' }}>جاري تحميل طلبات التسجيل...</p>
+      <div className="app-container">
+        <Sidebar isAdmin={true} />
+        <div className="main-content">
+          <div className="loading-container">
+            <div className="spinner-large"></div>
+            <p>جاري تحميل طلبات التسجيل...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="admin-page">
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-          duration={3000}
-        />
-      )}
-      
-      <div className="admin-container">
+    <div className="app-container">
+      <Sidebar isAdmin={true} />
+      <div className="main-content">
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+            duration={3000}
+          />
+        )}
+
+        {/* Top Bar */}
+        <motion.div 
+          className="gov-topbar"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="topbar-left">
+            <button 
+              className="back-btn"
+              onClick={() => navigate('/admin/dashboard')}
+            >
+              <FaArrowLeft />
+              <span>رجوع</span>
+            </button>
+          </div>
+        </motion.div>
+        
+        <div className="admin-container">
         <motion.div 
           className="admin-header"
           initial={{ opacity: 0, y: -20 }}
@@ -302,78 +327,9 @@ function PendingRegistrations() {
           )}
         </motion.div>
       </div>
+      </div>
     </div>
   );
 }
 
 export default PendingRegistrations;
-
-
-/* Responsive Styles for Pending Registrations */
-<style jsx>{`
-  @media (max-width: 1024px) {
-    .table-wrapper {
-      overflow-x: auto;
-    }
-    
-    .users-table {
-      min-width: 900px;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .admin-header {
-      flex-direction: column;
-      gap: 20px;
-      text-align: center;
-    }
-    
-    .admin-header h1 {
-      font-size: 2rem;
-    }
-    
-    .stats-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .table-wrapper {
-      border-radius: 12px;
-    }
-    
-    .users-table {
-      font-size: 0.9rem;
-    }
-    
-    .users-table th,
-    .users-table td {
-      padding: 10px 8px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .admin-page {
-      padding: 20px 10px;
-    }
-    
-    .admin-container {
-      padding: 0 10px;
-    }
-    
-    .admin-header h1 {
-      font-size: 1.7rem;
-    }
-    
-    .admin-header p {
-      font-size: 0.95rem;
-    }
-    
-    .users-table {
-      font-size: 0.85rem;
-    }
-    
-    .users-table button {
-      padding: 6px 12px;
-      font-size: 0.85rem;
-    }
-  }
-`}</style>

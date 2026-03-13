@@ -9,6 +9,7 @@ import {
   FaUserFriends, FaBuilding, FaChevronRight
 } from 'react-icons/fa';
 import { useTheme } from '../context/ThemeContext';
+import Sidebar from './Sidebar';
 import '../styles/GovernoratesView.css';
 
 function GovernoratesView() {
@@ -123,10 +124,13 @@ function GovernoratesView() {
 
   if (loading) {
     return (
-      <div className={`governorates-page ${darkMode ? 'dark' : ''}`}>
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>جاري تحميل بيانات المحافظات...</p>
+      <div className="app-container">
+        <Sidebar isAdmin={true} />
+        <div className="main-content">
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>جاري تحميل بيانات المحافظات...</p>
+          </div>
         </div>
       </div>
     );
@@ -137,7 +141,10 @@ function GovernoratesView() {
   const totalPoints = governoratesData.reduce((sum, gov) => sum + gov.totalPoints, 0);
 
   return (
-    <div className={`governorates-page ${darkMode ? 'dark' : ''}`}>
+    <div className="app-container">
+      <Sidebar isAdmin={true} />
+      <div className="main-content">
+        <div className={`governorates-page ${darkMode ? 'dark' : ''}`}>
       <div className="governorates-container">
         {/* Top Bar */}
         <motion.div 
@@ -366,6 +373,8 @@ function GovernoratesView() {
             <p>لم يتم العثور على محافظات تطابق بحثك</p>
           </motion.div>
         )}
+      </div>
+    </div>
       </div>
     </div>
   );

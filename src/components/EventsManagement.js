@@ -10,8 +10,10 @@ import {
   FaTimes,
   FaCheck,
   FaToggleOn,
-  FaToggleOff
+  FaToggleOff,
+  FaArrowLeft
 } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import { 
   createEvent, 
   getAllEvents, 
@@ -21,9 +23,11 @@ import {
   listenToEvents
 } from '../services/eventService';
 import { getAttendanceByEvent } from '../services/attendanceService';
+import Sidebar from './Sidebar';
 import '../styles/EventsManagement.css';
 
 function EventsManagement() {
+  const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -31,6 +35,9 @@ function EventsManagement() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [attendanceCounts, setAttendanceCounts] = useState({});
+  const [showAttendeesModal, setShowAttendeesModal] = useState(false);
+  const [attendeesList, setAttendeesList] = useState([]);
+  const [loadingAttendees, setLoadingAttendees] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -73,6 +80,20 @@ function EventsManagement() {
       }
     }
     setAttendanceCounts(counts);
+  };
+
+  const showEventAttendees = async (event) => {
+    setSelectedEvent(event);
+    setLoadingAttendees(true);
+    setShowAttendeesModal(true);
+    
+    const result = await getAttendanceByEvent(event.id);
+    if (result.success) {
+      setAttendeesList(result.attendance);
+    } else {
+      setAttendeesList([]);
+    }
+    setLoadingAttendees(false);
   };
 
   const handleInputChange = (e) => {
@@ -217,31 +238,56 @@ function EventsManagement() {
 
   if (loading && events.length === 0) {
     return (
-      <div className="events-management-page">
-        <div className="loading">جاري تحميل الفعاليات...</div>
+      <div className="app-container">
+        <Sidebar isAdmin={true} />
+        <div className="main-content">
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>جاري تحميل الفعاليات...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="events-management-page">
-      <div className="events-container">
-        {/* Header */}
-        <motion.div 
-          className="events-header"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div>
-            <h1>
-              <FaCalendar /> إدارة الفعاليات
-            </h1>
-            <p>إنشاء وإدارة الفعاليات والأنشطة</p>
-          </div>
-          <button className="btn btn-primary" onClick={openCreateModal}>
-            <FaPlus /> إضافة فعالية جديدة
-          </button>
-        </motion.div>
+    <div className="app-container">
+      <Sidebar isAdmin={true} />
+      <div className="main-content">
+        <div className="events-management-page">
+          <div className="events-container">
+            {/* Top Bar */}
+            <motion.div 
+              className="gov-topbar"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <button 
+                className="back-btn"
+                onClick={() => navigate('/admin')}
+              >
+                <FaArrowLeft />
+                <span>العودة للوحة التحكم</span>
+              </button>
+            </motion.div>
+
+            {/* Header */}
+            <motion.div 
+              className="events-header"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div>
+                <h1>
+                  <FaCalendar /> إدارة الفعاليات
+                </h1>
+                <p>إنشاء وإدارة الفعاليات والأنشطة</p>
+              </div>
+              <button className="btn btn-primary" onClick={openCreateModal}>
+                <FaPlus /> إضافة فعالية جديدة
+              </button>
+            </motion.div>
 
         {/* Messages */}
         <AnimatePresence>
@@ -301,7 +347,17 @@ function EventsManagement() {
                     
                     <div className="event-detail">
                       <FaUsers />
-                      <span>{attendanceCounts[event.id] || 0} حضور</span>
+                      <span 
+                        onClick={() => showEventAttendees(event)}
+                        style={{ 
+                          cursor: 'pointer', 
+                          textDecoration: 'underline',
+                          color: '#5b6ee1'
+                        }}
+                        title="اضغط لعرض المسجلين"
+                      >
+                        {attendanceCounts[event.id] || 0} حضور
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -478,6 +534,162 @@ function EventsManagement() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Attendees Modal */}
+        <AnimatePresence>
+          {showAttendeesModal && (
+            <motion.div 
+              className="modal-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAttendeesModal(false)}
+            >
+              <motion.div 
+                className="modal-content"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{ maxWidth: '800px' }}
+              >
+                <div className="modal-header">
+                  <h2>المسجلين في: {selectedEvent?.name}</h2>
+                  <button 
+                    className="modal-close" 
+                    onClick={() => setShowAttendeesModal(false)}
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+
+                <div className="modal-body" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                  {loadingAttendees ? (
+                    <div style={{ textAlign: 'center', padding: '40px' }}>
+                      <div className="loading-spinner"></div>
+                      <p style={{ marginTop: '20px', color: '#6b7280' }}>جاري تحميل البيانات...</p>
+                    </div>
+                  ) : attendeesList.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px' }}>
+                      <FaUsers style={{ fontSize: '3rem', color: '#9ca3af', marginBottom: '20px' }} />
+                      <p style={{ color: '#6b7280', fontSize: '1.1rem' }}>لا يوجد مسجلين حتى الآن</p>
+                    </div>
+                  ) : (
+                    <div className="attendees-list">
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
+                        gap: '16px' 
+                      }}>
+                        {attendeesList.map((attendee, index) => (
+                          <motion.div
+                            key={attendee.id || index}
+                            className="attendee-card"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            style={{
+                              background: '#f9fafb',
+                              padding: '16px',
+                              borderRadius: '12px',
+                              border: '1px solid #e5e7eb',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '8px'
+                            }}
+                          >
+                            <div style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '12px',
+                              marginBottom: '8px'
+                            }}>
+                              {attendee.profilePhotoURL ? (
+                                <img 
+                                  src={attendee.profilePhotoURL} 
+                                  alt={attendee.userName}
+                                  style={{
+                                    width: '50px',
+                                    height: '50px',
+                                    borderRadius: '50%',
+                                    objectFit: 'cover',
+                                    border: '2px solid #5b6ee1'
+                                  }}
+                                />
+                              ) : (
+                                <div style={{
+                                  width: '50px',
+                                  height: '50px',
+                                  borderRadius: '50%',
+                                  background: 'linear-gradient(135deg, #5b6ee1 0%, #7c3aed 100%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: 'white',
+                                  fontWeight: '700',
+                                  fontSize: '1.2rem'
+                                }}>
+                                  {attendee.userName?.charAt(0) || 'U'}
+                                </div>
+                              )}
+                              <div style={{ flex: 1 }}>
+                                <h4 style={{ 
+                                  margin: 0, 
+                                  fontSize: '1rem', 
+                                  fontWeight: '700',
+                                  color: '#111827'
+                                }}>
+                                  {attendee.userName || 'غير معروف'}
+                                </h4>
+                                <p style={{ 
+                                  margin: '4px 0 0 0', 
+                                  fontSize: '0.85rem', 
+                                  color: '#6b7280' 
+                                }}>
+                                  {attendee.userId}
+                                </p>
+                              </div>
+                            </div>
+                            <div style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '6px',
+                              fontSize: '0.85rem',
+                              color: '#6b7280'
+                            }}>
+                              <FaCalendar style={{ color: '#5b6ee1' }} />
+                              <span>
+                                {new Date(attendee.timestamp).toLocaleDateString('ar-EG', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="modal-footer">
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary" 
+                    onClick={() => setShowAttendeesModal(false)}
+                  >
+                    إغلاق
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+          </div>
+        </div>
       </div>
     </div>
   );

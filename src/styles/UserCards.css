@@ -362,90 +362,82 @@
   color: white;
 }
 
-/* Enhanced Modal */
+/* Enhanced Modal - Bootstrap Style */
 .modal-overlay-enhanced {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
-  background: rgba(0, 0, 0, 0.85) !important;
-  backdrop-filter: blur(15px) !important;
+  background: rgba(0, 0, 0, 0.5) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  z-index: 2000 !important;
+  z-index: 999999 !important;
   padding: 20px !important;
 }
 
 .modal-content-enhanced {
-  background: #23283a !important;
-  border-radius: 35px !important;
-  max-width: 900px !important;
+  background: white !important;
+  border-radius: 8px !important;
+  max-width: 600px !important;
   width: 100% !important;
   max-height: 90vh !important;
-  overflow-y: auto !important;
+  overflow: hidden !important;
   position: relative !important;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8) !important;
-  border: 1px solid #2d3748 !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  z-index: 1000000 !important;
+  animation: modalFadeIn 0.3s ease !important;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .modal-close-btn {
   position: absolute !important;
-  top: 25px !important;
-  left: 25px !important;
-  width: 50px !important;
-  height: 50px !important;
-  border-radius: 50% !important;
+  top: 15px !important;
+  left: 15px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 4px !important;
   border: none !important;
-  background: #2d3748 !important;
-  color: #94a3b8 !important;
-  font-size: 1.4rem !important;
+  background: transparent !important;
+  color: #6c757d !important;
+  font-size: 1.5rem !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: all 0.3s ease !important;
+  transition: all 0.2s ease !important;
   z-index: 10 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  opacity: 0.7 !important;
 }
 
 .modal-close-btn:hover {
-  background: #ef4444 !important;
-  color: white !important;
-  transform: rotate(90deg) scale(1.1) !important;
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+  background: #f8f9fa !important;
+  color: #000 !important;
+  opacity: 1 !important;
 }
 
 .modal-header-enhanced {
-  background: linear-gradient(135deg, #5b6ee1 0%, #7c3aed 100%) !important;
-  padding: 60px 40px 50px !important;
+  background: white !important;
+  padding: 20px 25px !important;
   text-align: center !important;
-  border-radius: 35px 35px 0 0 !important;
+  border-bottom: 1px solid #dee2e6 !important;
   position: relative !important;
-  overflow: hidden !important;
 }
 
 .modal-header-enhanced::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  animation: modalBgMove 10s ease-in-out infinite;
-}
-
-@keyframes modalBgMove {
-  0%, 100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(20px, -20px);
-  }
+  display: none !important;
 }
 
 .modal-avatar {
@@ -769,4 +761,142 @@
   .modal-header-enhanced h2 {
     font-size: 1.6rem;
   }
+}
+
+
+/* Bootstrap-Style Modal Components */
+.modal-avatar {
+  width: 80px !important;
+  height: 80px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  margin: 0 auto 15px !important;
+  border: 3px solid white !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.modal-header-enhanced h2 {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #212529 !important;
+  margin: 0 0 10px 0 !important;
+}
+
+.modal-badges {
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+}
+
+.badge {
+  padding: 5px 12px !important;
+  border-radius: 20px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+.badge-governorate {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
+}
+
+.badge-committee {
+  background: #f3e5f5 !important;
+  color: #7b1fa2 !important;
+}
+
+.badge-role {
+  background: #fff3e0 !important;
+  color: #f57c00 !important;
+}
+
+.modal-body-enhanced {
+  padding: 25px !important;
+  background: white !important;
+  max-height: calc(90vh - 200px) !important;
+  overflow-y: auto !important;
+}
+
+.detail-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+}
+
+.detail-item {
+  display: flex !important;
+  align-items: center !important;
+  padding: 12px 15px !important;
+  background: #f8f9fa !important;
+  border-radius: 6px !important;
+  border: 1px solid #e9ecef !important;
+  transition: all 0.2s ease !important;
+}
+
+.detail-item:hover {
+  background: #e9ecef !important;
+  border-color: #dee2e6 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.detail-icon {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.1rem !important;
+  margin-left: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.detail-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  flex: 1 !important;
+}
+
+.detail-label {
+  font-size: 0.75rem !important;
+  color: #6c757d !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.detail-value {
+  font-size: 0.95rem !important;
+  color: #212529 !important;
+  font-weight: 500 !important;
+}
+
+/* Photos Section - Bootstrap Style */
+.photos-section {
+  margin-top: 20px !important;
+  padding: 20px !important;
+  background: #f8f9fa !important;
+  border-radius: 8px !important;
+  border: 1px solid #e9ecef !important;
+}
+
+.photos-section h3 {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #212529 !important;
+  margin-bottom: 15px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
 }

@@ -14,7 +14,8 @@ import {
   FaUsers,
   FaMapMarkerAlt,
   FaQrcode,
-  FaUserClock
+  FaUserClock,
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import '../styles/Sidebar.css';
 
@@ -39,6 +40,7 @@ function Sidebar({ isAdmin = false }) {
     { path: '/admin/pending', icon: FaUserClock, label: 'طلبات التسجيل', badge: '5' },
     { path: '/admin/tasks', icon: FaClipboardList, label: 'المهام', badge: '3' },
     { path: '/admin/scanner', icon: FaQrcode, label: 'ماسح QR', badge: null },
+    { path: '/admin/unauthorized-attempts', icon: FaExclamationTriangle, label: 'محاولات الدخول', badge: null },
     { path: '/admin/settings', icon: FaCog, label: 'الإعدادات', badge: null },
   ];
 

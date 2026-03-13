@@ -79,7 +79,7 @@ function RegistrationForm() {
     'جنوب سيناء', 'سوهاج'
   ];
 
-  const committees = ['PR', 'HR', 'R&D', 'Social Media', 'OR'];
+  const committees = ['PR', 'HR', 'R&D', 'Social Media', 'OR', 'Training'];
   const roles = ['Head', 'Vice Head', 'Team Leader', 'Vice Team Leader', 'Member'];
 
   const [loading, setLoading] = useState(false);

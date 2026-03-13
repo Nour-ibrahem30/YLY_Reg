@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaEnvelope, FaPhone, FaIdCard, FaMapMarkerAlt, FaUsers, FaUserTie, FaCalendar, FaUniversity, FaImage, FaUser } from 'react-icons/fa';
+import '../styles/BootstrapModal.css';
 
 function UserDetailsModal({ user, onClose }) {
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   if (!user) return null;
 
   const getInitials = (name) => {
@@ -14,7 +24,7 @@ function UserDetailsModal({ user, onClose }) {
       .slice(0, 2);
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       <motion.div
         className="modal-overlay-enhanced"
@@ -41,16 +51,26 @@ function UserDetailsModal({ user, onClose }) {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring" }}
-              style={{
-                backgroundImage: user.profilePhotoURL ? `url(${user.profilePhotoURL})` : 'none',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                cursor: user.profilePhotoURL ? 'pointer' : 'default'
-              }}
               onClick={() => user.profilePhotoURL && window.open(user.profilePhotoURL, '_blank')}
               title={user.profilePhotoURL ? 'اضغط لعرض الصورة بالحجم الكامل' : ''}
+              style={{
+                cursor: user.profilePhotoURL ? 'pointer' : 'default'
+              }}
             >
-              {!user.profilePhotoURL && getInitials(user.name)}
+              {user.profilePhotoURL ? (
+                <img 
+                  src={user.profilePhotoURL} 
+                  alt={user.name}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '50%'
+                  }}
+                />
+              ) : (
+                <span>{getInitials(user.name)}</span>
+              )}
             </motion.div>
             <motion.h2
               initial={{ y: 20, opacity: 0 }}
@@ -315,6 +335,9 @@ function UserDetailsModal({ user, onClose }) {
       </motion.div>
     </AnimatePresence>
   );
+
+  // Render modal in body using Portal
+  return ReactDOM.createPortal(modalContent, document.body);
 }
 
 export default UserDetailsModal;

@@ -538,19 +538,33 @@
 }
 
 .filter-select {
-  background: #2d3748;
-  border: 1px solid #374151;
-  color: white;
+  background: transparent;
+  border: 1px solid #5b6ee1;
+  color: #ffffff;
   padding: 8px 16px;
   border-radius: 8px;
   font-family: 'Cairo', sans-serif;
   font-weight: 600;
   cursor: pointer;
   outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .filter-select:hover {
-  background: #374151;
+  background: rgba(91, 110, 225, 0.1);
+  border-color: #7c3aed;
+}
+
+.filter-select:focus {
+  background: rgba(91, 110, 225, 0.15);
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(91, 110, 225, 0.2);
+}
+
+.filter-select option {
+  background: #23283a;
+  color: #ffffff;
+  padding: 8px;
 }
 
 .device-circle {

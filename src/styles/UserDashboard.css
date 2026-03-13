@@ -177,14 +177,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 30vh;
   gap: 20px;
 }
 
 .loading-spinner {
   width: 60px;
   height: 60px;
-  border: 5px solid rgba(91, 110, 225, 0.2);
+  border: 4px solid #2d3748;
   border-top-color: #5b6ee1;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -195,7 +195,7 @@
 }
 
 .loading-container p {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #94a3b8;
   font-weight: 600;
 }

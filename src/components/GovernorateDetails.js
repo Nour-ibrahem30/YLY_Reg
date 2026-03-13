@@ -9,6 +9,7 @@ import {
   FaChevronRight, FaFilter, FaSort, FaMedal
 } from 'react-icons/fa';
 import { useTheme } from '../context/ThemeContext';
+import Sidebar from './Sidebar';
 import '../styles/GovernorateDetails.css';
 
 function GovernorateDetails() {
@@ -110,18 +111,24 @@ function GovernorateDetails() {
 
   if (loading) {
     return (
-      <div className={`governorate-details-page ${darkMode ? 'dark' : ''}`}>
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>جاري تحميل بيانات {governorate}...</p>
+      <div className="app-container">
+        <Sidebar isAdmin={true} />
+        <div className="main-content">
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>جاري تحميل بيانات {governorate}...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`governorate-details-page ${darkMode ? 'dark' : ''}`}>
-      <div className="governorate-details-container">
+    <div className="app-container">
+      <Sidebar isAdmin={true} />
+      <div className="main-content">
+        <div className={`governorate-details-page ${darkMode ? 'dark' : ''}`}>
+          <div className="governorate-details-container">
         {/* Top Bar */}
         <motion.div 
           className="gov-details-topbar"
@@ -375,6 +382,8 @@ function GovernorateDetails() {
             <p>لم يتم العثور على لجان تطابق بحثك</p>
           </motion.div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

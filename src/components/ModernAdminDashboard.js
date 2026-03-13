@@ -13,6 +13,7 @@ import {
   FaBuilding
 } from 'react-icons/fa';
 import { useTheme } from '../context/ThemeContext';
+import Sidebar from './Sidebar';
 import '../styles/ModernAdminDashboard.css';
 
 function ModernAdminDashboard() {
@@ -274,68 +275,27 @@ function ModernAdminDashboard() {
 
   if (loading) {
     return (
-      <div className={`modern-admin ${darkMode ? 'dark' : ''}`}>
-        <div className="loading-screen">
-          <div className="loader"></div>
-          <p>جاري التحميل...</p>
+      <div className="app-container">
+        <Sidebar isAdmin={true} />
+        <div className="main-content">
+          <div className="loading-container">
+            <div className="spinner-large"></div>
+            <p>جاري التحميل...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`modern-admin ${darkMode ? 'dark' : ''}`}>
-      {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <img src="/images/yly-logo.jpg" alt="YLY" />
-          <h2>YLY Admin</h2>
-        </div>
-
-        <nav className="sidebar-nav">
-          <Link to="/admin" className="nav-link active">
-            <FaHome />
-            <span>الرئيسية</span>
-          </Link>
-          <Link to="/admin/governorates" className="nav-link">
-            <FaUsers />
-            <span>المحافظات</span>
-          </Link>
-          <Link to="/admin/pending" className="nav-link">
-            <FaUserClock />
-            <span>طلبات التسجيل</span>
-            {stats.pendingRegistrations > 0 && (
-              <span className="badge">{stats.pendingRegistrations}</span>
-            )}
-          </Link>
-          <Link to="/admin/events" className="nav-link">
-            <FaCalendarAlt />
-            <span>الفعاليات</span>
-          </Link>
-          <Link to="/admin/tasks" className="nav-link">
-            <FaClipboardList />
-            <span>المهام</span>
-          </Link>
-          <Link to="/admin/scanner" className="nav-link">
-            <FaQrcode />
-            <span>مسح QR</span>
-          </Link>
-        </nav>
-
-        <button className="logout-btn" onClick={handleLogout}>
-          <FaSignOutAlt />
-          <span>تسجيل الخروج</span>
-        </button>
-      </aside>
-
+    <div className="app-container">
+      <Sidebar isAdmin={true} />
+      
       {/* Main Content */}
       <main className="main-content">
         {/* Top Bar */}
         <header className="top-bar">
           <div className="top-bar-left">
-            <button className="menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
-              <FaBars />
-            </button>
             <div>
               <h1>لوحة التحكم</h1>
               <p className="breadcrumb">

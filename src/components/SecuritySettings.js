@@ -4,6 +4,7 @@ import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firesto
 import { db } from '../firebase';
 import { motion } from 'framer-motion';
 import { FaShieldAlt, FaLock, FaKey, FaHistory, FaDownload, FaToggleOn, FaToggleOff, FaEnvelope, FaArrowLeft } from 'react-icons/fa';
+import Sidebar from './Sidebar';
 import twoFactorAuth from '../utils/twoFactorAuth';
 import securityLogger from '../utils/securityLogger';
 import '../styles/SecuritySettings.css';
@@ -173,10 +174,13 @@ function SecuritySettings() {
 
   if (loading) {
     return (
-      <div className="security-settings">
-        <div style={{ textAlign: 'center', padding: '100px 20px' }}>
-          <div className="loading-spinner" style={{ margin: '0 auto 20px' }}></div>
-          <p style={{ color: '#6b7280' }}>جاري تحميل البيانات...</p>
+      <div className="app-container">
+        <Sidebar isAdmin={false} />
+        <div className="main-content">
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>جاري تحميل البيانات...</p>
+          </div>
         </div>
       </div>
     );
@@ -184,32 +188,40 @@ function SecuritySettings() {
 
   if (!userData) {
     return (
-      <div className="security-settings">
-        <div style={{ textAlign: 'center', padding: '100px 20px' }}>
-          <p style={{ color: '#dc2626', fontSize: '1.2rem' }}>لم يتم العثور على بيانات المستخدم</p>
-          <button
-            onClick={() => navigate('/')}
-            style={{
-              marginTop: '20px',
-              padding: '12px 30px',
-              background: '#2563EB',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontFamily: 'Cairo, sans-serif',
-              fontWeight: '600'
-            }}
-          >
-            العودة للرئيسية
-          </button>
+      <div className="app-container">
+        <Sidebar isAdmin={false} />
+        <div className="main-content">
+          <div className="security-settings">
+            <div style={{ textAlign: 'center', padding: '100px 20px' }}>
+              <p style={{ color: '#dc2626', fontSize: '1.2rem' }}>لم يتم العثور على بيانات المستخدم</p>
+              <button
+                onClick={() => navigate('/')}
+                style={{
+                  marginTop: '20px',
+                  padding: '12px 30px',
+                  background: '#2563EB',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontFamily: 'Cairo, sans-serif',
+                  fontWeight: '600'
+                }}
+              >
+                العودة للرئيسية
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="security-settings">
+    <div className="app-container">
+      <Sidebar isAdmin={false} />
+      <div className="main-content">
+        <div className="security-settings">
       {/* Back button */}
       <motion.button
         className="back-button"
@@ -465,6 +477,8 @@ function SecuritySettings() {
           </ul>
         </div>
       </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

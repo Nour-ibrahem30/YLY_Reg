@@ -8,6 +8,7 @@ import {
   FaMoon, FaSun, FaUserCircle, FaEnvelope, FaPhone, FaIdCard
 } from 'react-icons/fa';
 import { useTheme } from '../context/ThemeContext';
+import Sidebar from './Sidebar';
 import UserCard from './UserCard';
 import UserDetailsModal from './UserDetailsModal';
 import '../styles/CommitteeMembers.css';
@@ -102,18 +103,24 @@ function CommitteeMembers() {
 
   if (loading) {
     return (
-      <div className={`committee-members-page ${darkMode ? 'dark' : ''}`}>
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>جاري تحميل أعضاء اللجنة...</p>
+      <div className="app-container">
+        <Sidebar isAdmin={true} />
+        <div className="main-content">
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>جاري تحميل أعضاء اللجنة...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`committee-members-page ${darkMode ? 'dark' : ''}`}>
-      <div className="committee-members-container">
+    <div className="app-container">
+      <Sidebar isAdmin={true} />
+      <div className="main-content">
+        <div className={`committee-members-page ${darkMode ? 'dark' : ''}`}>
+          <div className="committee-members-container">
         {/* Top Bar */}
         <motion.div 
           className="committee-topbar"
@@ -265,6 +272,8 @@ function CommitteeMembers() {
             onClose={() => setSelectedUser(null)} 
           />
         )}
+          </div>
+        </div>
       </div>
     </div>
   );
