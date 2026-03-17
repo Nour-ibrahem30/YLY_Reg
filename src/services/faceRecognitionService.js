@@ -319,3 +319,107 @@ export const isAdminFaceRegistered = async () => {
   const adminFaces = await getRegisteredAdminFaces();
   return adminFaces.length > 0;
 };
+
+// Delete a single unauthorized attempt
+export const deleteUnauthorizedAttempt = async (attemptId) => {
+  try {
+    if (!supabase) {
+      throw new Error('Supabase not configured');
+    }
+
+    // Get the attempt to delete the image from storage
+    const { data: attempt, error: fetchError } = await supabase
+      .from('unauthorized_access_attempts')
+      .select('image_url')
+      .eq('id', attemptId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching attempt:', fetchError);
+    }
+
+    // Delete from database
+    const { error: deleteError } = await supabase
+      .from('unauthorized_access_attempts')
+      .delete()
+      .eq('id', attemptId);
+
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
+
+    // Delete image from storage if exists
+    if (attempt && attempt.image_url) {
+      try {
+        const urlParts = attempt.image_url.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const filePath = `unauthorized-attempts/${fileName}`;
+
+        await supabase.storage
+          .from('face-recognition')
+          .remove([filePath]);
+      } catch (storageError) {
+        console.error('Error deleting image from storage:', storageError);
+      }
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting unauthorized attempt:', error);
+    throw error;
+  }
+};
+
+// Delete all unauthorized attempts
+export const deleteAllUnauthorizedAttempts = async () => {
+  try {
+    if (!supabase) {
+      throw new Error('Supabase not configured');
+    }
+
+    // Get all attempts to delete images from storage
+    const { data: attempts, error: fetchError } = await supabase
+      .from('unauthorized_access_attempts')
+      .select('image_url');
+
+    if (fetchError) {
+      console.error('Error fetching attempts:', fetchError);
+    }
+
+    // Delete all from database
+    const { error: deleteError } = await supabase
+      .from('unauthorized_access_attempts')
+      .delete()
+      .neq('id', 0); // Delete all records
+
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
+
+    // Delete all images from storage
+    if (attempts && attempts.length > 0) {
+      try {
+        const filePaths = attempts
+          .filter(a => a.image_url)
+          .map(a => {
+            const urlParts = a.image_url.split('/');
+            const fileName = urlParts[urlParts.length - 1];
+            return `unauthorized-attempts/${fileName}`;
+          });
+
+        if (filePaths.length > 0) {
+          await supabase.storage
+            .from('face-recognition')
+            .remove(filePaths);
+        }
+      } catch (storageError) {
+        console.error('Error deleting images from storage:', storageError);
+      }
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting all unauthorized attempts:', error);
+    throw error;
+  }
+};

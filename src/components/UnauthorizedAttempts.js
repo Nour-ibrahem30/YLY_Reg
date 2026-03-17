@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaExclamationTriangle, FaCalendarAlt, FaClock, FaGlobe, FaDesktop, FaArrowLeft } from 'react-icons/fa';
+import { FaExclamationTriangle, FaCalendarAlt, FaClock, FaGlobe, FaDesktop, FaArrowLeft, FaTrash, FaTrashAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { getUnauthorizedAttempts } from '../services/faceRecognitionService';
+import { getUnauthorizedAttempts, deleteUnauthorizedAttempt, deleteAllUnauthorizedAttempts } from '../services/faceRecognitionService';
 import Sidebar from './Sidebar';
 import '../styles/UnauthorizedAttempts.css';
 
@@ -11,6 +11,7 @@ function UnauthorizedAttempts() {
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAttempt, setSelectedAttempt] = useState(null);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     loadAttempts();
@@ -25,6 +26,38 @@ function UnauthorizedAttempts() {
       console.error('Error loading attempts:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteAttempt = async (attemptId, e) => {
+    e.stopPropagation();
+    
+    if (window.confirm('هل أنت متأكد من حذف هذه المحاولة؟')) {
+      try {
+        await deleteUnauthorizedAttempt(attemptId);
+        setMessage({ type: 'success', text: 'تم حذف المحاولة بنجاح' });
+        loadAttempts();
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      } catch (error) {
+        console.error('Error deleting attempt:', error);
+        setMessage({ type: 'error', text: 'حدث خطأ أثناء حذف المحاولة' });
+      }
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (window.confirm(`هل أنت متأكد من حذف جميع المحاولات (${attempts.length})؟ هذا الإجراء لا يمكن التراجع عنه!`)) {
+      try {
+        setLoading(true);
+        await deleteAllUnauthorizedAttempts();
+        setMessage({ type: 'success', text: 'تم حذف جميع المحاولات بنجاح' });
+        loadAttempts();
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      } catch (error) {
+        console.error('Error deleting all attempts:', error);
+        setMessage({ type: 'error', text: 'حدث خطأ أثناء حذف المحاولات' });
+        setLoading(false);
+      }
     }
   };
 
@@ -92,7 +125,25 @@ function UnauthorizedAttempts() {
             <span className="stats-number">{attempts.length}</span>
             <span className="stats-label">محاولة</span>
           </div>
+
+          {attempts.length > 0 && (
+            <button className="delete-all-btn" onClick={handleDeleteAll}>
+              <FaTrashAlt />
+              <span>حذف الكل</span>
+            </button>
+          )}
         </div>
+
+        {/* Message */}
+        {message.text && (
+          <motion.div
+            className={`message-alert ${message.type}`}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {message.text}
+          </motion.div>
+        )}
 
       {attempts.length === 0 ? (
         <motion.div
@@ -145,6 +196,14 @@ function UnauthorizedAttempts() {
                   </div>
                 )}
               </div>
+
+              <button 
+                className="delete-attempt-btn"
+                onClick={(e) => handleDeleteAttempt(attempt.id, e)}
+                title="حذف المحاولة"
+              >
+                <FaTrash />
+              </button>
             </motion.div>
           ))}
         </div>
