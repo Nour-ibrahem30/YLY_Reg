@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import Webcam from 'react-webcam';
 import { 
   FaUserShield, 
   FaArrowLeft, 
@@ -11,22 +12,39 @@ import {
   FaTrash,
   FaEye,
   FaCalendar,
-  FaImage
+  FaImage,
+  FaPlus,
+  FaCamera
 } from 'react-icons/fa';
 import Sidebar from './Sidebar';
+import { registerAdminFace, loadModels } from '../services/faceRecognitionService';
 import '../styles/AdminManagement.css';
 
 function AdminManagement() {
   const navigate = useNavigate();
+  const webcamRef = useRef(null);
   const [admins, setAdmins] = useState([]);
   const [pendingAdmins, setPendingAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [selectedImage, setSelectedImage] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newAdminName, setNewAdminName] = useState('');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [capturing, setCapturing] = useState(false);
+  const [countdown, setCountdown] = useState(null);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
 
   useEffect(() => {
     loadAdmins();
+    initModels();
   }, []);
+
+  const initModels = async () => {
+    const loaded = await loadModels();
+    setModelsLoaded(loaded);
+  };
 
   const loadAdmins = async () => {
     setLoading(true);
@@ -102,6 +120,78 @@ function AdminManagement() {
     }
   };
 
+  const handleAddAdmin = async (e) => {
+    e.preventDefault();
+    
+    if (!newAdminName.trim()) {
+      setMessage({ type: 'error', text: 'يرجى إدخال اسم الأدمن' });
+      return;
+    }
+
+    if (!newAdminEmail.trim() || !newAdminEmail.includes('@')) {
+      setMessage({ type: 'error', text: 'يرجى إدخال بريد إلكتروني صحيح' });
+      return;
+    }
+
+    if (!webcamRef.current) {
+      setMessage({ type: 'error', text: 'الكاميرا غير متاحة' });
+      return;
+    }
+
+    try {
+      setCapturing(true);
+      setMessage({ type: 'info', text: 'جاري التقاط الصورة...' });
+
+      // Countdown
+      for (let i = 3; i > 0; i--) {
+        setCountdown(i);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      setCountdown(null);
+
+      // Capture image
+      const imageSrc = webcamRef.current.getScreenshot();
+      
+      if (!imageSrc) {
+        throw new Error('فشل التقاط الصورة');
+      }
+
+      setCapturedImage(imageSrc);
+      setMessage({ type: 'info', text: 'جاري إضافة الأدمن...' });
+
+      // Register face - will be approved automatically since admin is adding
+      await registerAdminFace(imageSrc, newAdminName, newAdminEmail);
+
+      setMessage({ type: 'success', text: 'تم إضافة الأدمن بنجاح!' });
+      
+      // Reset form
+      setShowAddModal(false);
+      setNewAdminName('');
+      setNewAdminEmail('');
+      setCapturedImage(null);
+      setCapturing(false);
+      
+      // Reload admins
+      loadAdmins();
+      
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    } catch (error) {
+      console.error('Error adding admin:', error);
+      setMessage({ type: 'error', text: error.message || 'حدث خطأ أثناء إضافة الأدمن' });
+      setCapturedImage(null);
+      setCapturing(false);
+    }
+  };
+
+  const handleCancelAdd = () => {
+    setShowAddModal(false);
+    setNewAdminName('');
+    setNewAdminEmail('');
+    setCapturedImage(null);
+    setCapturing(false);
+    setCountdown(null);
+  };
+
   if (loading) {
     return (
       <div className="app-container">
@@ -151,6 +241,13 @@ function AdminManagement() {
                 <h1>إدارة المسؤولين</h1>
                 <p>قبول ورفض وإدارة المسؤولين في النظام</p>
               </div>
+              <button 
+                className="add-admin-btn"
+                onClick={() => setShowAddModal(true)}
+              >
+                <FaPlus />
+                <span>إضافة أدمن جديد</span>
+              </button>
             </motion.div>
 
             {/* Message */}
@@ -300,6 +397,124 @@ function AdminManagement() {
             </div>
           </div>
         )}
+
+        {/* Add Admin Modal */}
+        <AnimatePresence>
+          {showAddModal && (
+            <motion.div 
+              className="add-admin-modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleCancelAdd}
+            >
+              <motion.div 
+                className="add-admin-modal-content"
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="modal-header">
+                  <h2>إضافة أدمن جديد</h2>
+                  <button className="close-modal-btn" onClick={handleCancelAdd}>
+                    <FaTimes />
+                  </button>
+                </div>
+
+                <form onSubmit={handleAddAdmin}>
+                  <div className="form-group">
+                    <label>اسم الأدمن</label>
+                    <input
+                      type="text"
+                      value={newAdminName}
+                      onChange={(e) => setNewAdminName(e.target.value)}
+                      placeholder="أدخل اسم الأدمن"
+                      required
+                      disabled={capturing}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input
+                      type="email"
+                      value={newAdminEmail}
+                      onChange={(e) => setNewAdminEmail(e.target.value)}
+                      placeholder="admin@example.com"
+                      required
+                      disabled={capturing}
+                    />
+                  </div>
+
+                  <div className="webcam-section">
+                    <label>صورة الوجه</label>
+                    <div className="webcam-wrapper">
+                      {countdown && (
+                        <div className="countdown-overlay">
+                          <motion.div
+                            className="countdown-number"
+                            key={countdown}
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 2, opacity: 0 }}
+                          >
+                            {countdown}
+                          </motion.div>
+                        </div>
+                      )}
+
+                      {capturedImage ? (
+                        <img src={capturedImage} alt="Captured" className="captured-preview" />
+                      ) : (
+                        <Webcam
+                          ref={webcamRef}
+                          audio={false}
+                          screenshotFormat="image/jpeg"
+                          className="webcam-preview"
+                          mirrored={true}
+                          videoConstraints={{
+                            width: 640,
+                            height: 480,
+                            facingMode: 'user'
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="modal-actions">
+                    <button
+                      type="submit"
+                      className="submit-btn"
+                      disabled={capturing || !modelsLoaded}
+                    >
+                      {capturing ? (
+                        <>
+                          <span className="spinner"></span>
+                          <span>جاري المعالجة...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FaCamera />
+                          <span>التقاط الصورة وإضافة</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className="cancel-btn"
+                      onClick={handleCancelAdd}
+                      disabled={capturing}
+                    >
+                      إلغاء
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
