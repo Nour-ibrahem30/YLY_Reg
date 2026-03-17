@@ -58,17 +58,17 @@ function FaceRecognitionLogin() {
         setNeedsRegistration(!isRegistered);
 
         if (isRegistered) {
-          setMessage('✓ تم العثور على وجه مسجل. ضع وجهك أمام الكاميرا للتحقق');
+          setMessage('✓ يوجد أدمن مسجل. ضع وجهك أمام الكاميرا للتحقق');
           setMessageType('success');
         } else {
-          setMessage('⚠️ لا يوجد وجه مسجل. يرجى تسجيل وجه الأدمن أولاً');
+          setMessage('⚠️ لا يوجد أدمن مسجل. يمكنك إضافة Face ID جديد');
           setMessageType('info');
         }
       } catch (dbError) {
         console.error('Database check error:', dbError);
         // If there's an error checking the database, assume no registration
         setNeedsRegistration(true);
-        setMessage('⚠️ لا يوجد وجه مسجل. يرجى تسجيل وجه الأدمن أولاً');
+        setMessage('⚠️ لا يوجد أدمن مسجل. يمكنك إضافة Face ID جديد');
         setMessageType('info');
       }
 
@@ -386,7 +386,7 @@ function FaceRecognitionLogin() {
                   disabled={capturing}
                 >
                   <FaShieldAlt />
-                  <span>تسجيل وجه الأدمن</span>
+                  <span>إضافة Face ID جديد</span>
                 </motion.button>
                 <motion.button
                   className="code-login-btn"
@@ -520,7 +520,7 @@ function FaceRecognitionLogin() {
                 className="submit-btn"
                 disabled={capturing}
               >
-                {capturing ? <span className="spinner"></span> : 'إرسال طلب التسجيل'}
+                {capturing ? <span className="spinner"></span> : 'إضافة Face ID وإرسال للموافقة'}
               </button>
               <button
                 type="button"
