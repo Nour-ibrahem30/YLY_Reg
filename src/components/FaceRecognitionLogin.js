@@ -22,6 +22,7 @@ function FaceRecognitionLogin() {
   const [needsRegistration, setNeedsRegistration] = useState(false);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [adminName, setAdminName] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
   const [countdown, setCountdown] = useState(null);
 
@@ -149,6 +150,12 @@ function FaceRecognitionLogin() {
       return;
     }
 
+    if (!adminEmail.trim() || !adminEmail.includes('@')) {
+      setMessage('⚠️ يرجى إدخال بريد إلكتروني صحيح');
+      setMessageType('error');
+      return;
+    }
+
     if (!webcamRef.current) {
       setMessage('⚠️ الكاميرا غير متاحة');
       setMessageType('error');
@@ -175,23 +182,22 @@ function FaceRecognitionLogin() {
       }
 
       setCapturedImage(imageSrc);
-      setMessage('جاري تسجيل الوجه في قاعدة البيانات...');
+      setMessage('جاري إرسال طلب التسجيل...');
 
-      // Register face
-      await registerAdminFace(imageSrc, adminName);
+      // Register face with pending status
+      await registerAdminFace(imageSrc, adminName, adminEmail);
 
-      setMessage('✓ تم تسجيل وجه الأدمن بنجاح!');
+      setMessage('✓ تم إرسال طلب التسجيل بنجاح! في انتظار موافقة الأدمن الرئيسي');
       setMessageType('success');
-      setNeedsRegistration(false);
       setShowRegistrationForm(false);
       setAdminName('');
+      setAdminEmail('');
 
       setTimeout(() => {
         setCapturedImage(null);
         setCapturing(false);
-        setMessage('✓ يمكنك الآن تسجيل الدخول. ضع وجهك أمام الكاميرا للتحقق');
-        setMessageType('success');
-      }, 2000);
+        navigate('/');
+      }, 3000);
     } catch (error) {
       console.error('Registration error:', error);
       setMessage(error.message || 'حدث خطأ أثناء التسجيل');
@@ -349,13 +355,25 @@ function FaceRecognitionLogin() {
               />
             </div>
 
+            <div className="form-group">
+              <label>البريد الإلكتروني</label>
+              <input
+                type="email"
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                placeholder="admin@example.com"
+                required
+                disabled={capturing}
+              />
+            </div>
+
             <div className="form-actions">
               <button
                 type="submit"
                 className="submit-btn"
                 disabled={capturing}
               >
-                {capturing ? <span className="spinner"></span> : 'تسجيل الوجه'}
+                {capturing ? <span className="spinner"></span> : 'إرسال طلب التسجيل'}
               </button>
               <button
                 type="button"
@@ -363,6 +381,7 @@ function FaceRecognitionLogin() {
                 onClick={() => {
                   setShowRegistrationForm(false);
                   setAdminName('');
+                  setAdminEmail('');
                 }}
                 disabled={capturing}
               >

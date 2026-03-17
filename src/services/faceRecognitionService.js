@@ -97,7 +97,7 @@ const uploadImageToStorage = async (imageDataUrl, folder) => {
 };
 
 // Register admin face
-export const registerAdminFace = async (imageDataUrl, adminName) => {
+export const registerAdminFace = async (imageDataUrl, adminName, adminEmail = '') => {
   try {
     if (!supabase) {
       throw new Error('Supabase غير مُعد بشكل صحيح');
@@ -112,16 +112,18 @@ export const registerAdminFace = async (imageDataUrl, adminName) => {
     // Upload image to Storage
     const uploadResult = await uploadImageToStorage(imageDataUrl, 'admin-faces');
 
-    // Save to Supabase database
-    const { data, error } = await supabase
+    // Save to Supabase database with pending status
+    const { data, error} = await supabase
       .from('admin_faces')
       .insert([
         {
           name: adminName,
+          email: adminEmail || null,
           descriptor: descriptor,
           image_url: uploadResult.url,
-          registered_at: new Date().toISOString(),
-          active: true
+          uploaded_at: new Date().toISOString(),
+          status: 'pending',
+          active: false
         }
       ])
       .select();
@@ -131,11 +133,11 @@ export const registerAdminFace = async (imageDataUrl, adminName) => {
       throw new Error(error.message || 'فشل حفظ البيانات');
     }
 
-    console.log('Admin face registered successfully:', data);
+    console.log('Admin face registered successfully (pending approval):', data);
 
     return {
       success: true,
-      message: 'تم تسجيل وجه الأدمن بنجاح'
+      message: 'تم إرسال طلب التسجيل بنجاح'
     };
   } catch (error) {
     console.error('Error registering admin face:', error);

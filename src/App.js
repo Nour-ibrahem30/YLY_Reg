@@ -17,6 +17,7 @@ import UserDashboard from './components/UserDashboard';
 import SecuritySettings from './components/SecuritySettings';
 import AdminSettings from './components/AdminSettings';
 import Analytics from './components/Analytics';
+import AdminManagement from './components/AdminManagement';
 import EnhancedProfile from './components/EnhancedProfile';
 import QRCodePage from './components/QRCodePage';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
@@ -50,6 +51,7 @@ function App() {
           <Route path="/admin/events" element={<ProtectedAdminRoute><EventsManagement /></ProtectedAdminRoute>} />
           <Route path="/admin/attendance" element={<ProtectedAdminRoute><AttendanceLogs /></ProtectedAdminRoute>} />
           <Route path="/admin/tasks" element={<ProtectedAdminRoute><AdminTasks /></ProtectedAdminRoute>} />
+          <Route path="/admin/admins" element={<ProtectedAdminRoute><AdminManagement /></ProtectedAdminRoute>} />
           <Route path="/admin/unauthorized-attempts" element={<ProtectedAdminRoute><UnauthorizedAttempts /></ProtectedAdminRoute>} />
           <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
           <Route path="/admin/governorates" element={<ProtectedAdminRoute><GovernoratesView /></ProtectedAdminRoute>} />

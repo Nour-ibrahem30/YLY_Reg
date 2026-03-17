@@ -5,17 +5,16 @@ import {
   FaUser, 
   FaCalendarAlt, 
   FaClipboardList, 
-  FaTrophy,
   FaBell,
   FaCog,
   FaBars,
   FaTimes,
   FaChartBar,
-  FaUsers,
   FaMapMarkerAlt,
   FaQrcode,
   FaUserClock,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaUserShield
 } from 'react-icons/fa';
 import '../styles/Sidebar.css';
 
@@ -24,24 +23,25 @@ function Sidebar({ isAdmin = false }) {
   const location = useLocation();
 
   const userMenuItems = [
-    { path: '/dashboard', icon: FaHome, label: 'الرئيسية', badge: null },
-    { path: '/profile', icon: FaUser, label: 'الملف الشخصي', badge: null },
-    { path: '/events', icon: FaCalendarAlt, label: 'الفعاليات', badge: '3' },
-    { path: '/tasks', icon: FaClipboardList, label: 'المهام', badge: '2' },
-    { path: '/notifications', icon: FaBell, label: 'الإشعارات', badge: '5' },
-    { path: '/settings', icon: FaCog, label: 'الإعدادات', badge: null },
+    { path: '/dashboard', icon: FaHome, label: 'الرئيسية' },
+    { path: '/profile', icon: FaUser, label: 'الملف الشخصي' },
+    { path: '/events', icon: FaCalendarAlt, label: 'الفعاليات' },
+    { path: '/tasks', icon: FaClipboardList, label: 'المهام' },
+    { path: '/notifications', icon: FaBell, label: 'الإشعارات' },
+    { path: '/settings', icon: FaCog, label: 'الإعدادات' },
   ];
 
   const adminMenuItems = [
-    { path: '/admin', icon: FaHome, label: 'لوحة التحكم', badge: null },
-    { path: '/admin/analytics', icon: FaChartBar, label: 'التحليلات', badge: null },
-    { path: '/admin/governorates', icon: FaMapMarkerAlt, label: 'المحافظات', badge: null },
-    { path: '/admin/events', icon: FaCalendarAlt, label: 'الفعاليات', badge: null },
-    { path: '/admin/pending', icon: FaUserClock, label: 'طلبات التسجيل', badge: '5' },
-    { path: '/admin/tasks', icon: FaClipboardList, label: 'المهام', badge: '3' },
-    { path: '/admin/scanner', icon: FaQrcode, label: 'ماسح QR', badge: null },
-    { path: '/admin/unauthorized-attempts', icon: FaExclamationTriangle, label: 'محاولات الدخول', badge: null },
-    { path: '/admin/settings', icon: FaCog, label: 'الإعدادات', badge: null },
+    { path: '/admin', icon: FaHome, label: 'الرئيسية' },
+    { path: '/admin/analytics', icon: FaChartBar, label: 'التحليلات' },
+    { path: '/admin/governorates', icon: FaMapMarkerAlt, label: 'المحافظات' },
+    { path: '/admin/events', icon: FaCalendarAlt, label: 'الفعاليات' },
+    { path: '/admin/pending', icon: FaUserClock, label: 'الطلبات' },
+    { path: '/admin/tasks', icon: FaClipboardList, label: 'المهام' },
+    { path: '/admin/admins', icon: FaUserShield, label: 'الأدمن' },
+    { path: '/admin/scanner', icon: FaQrcode, label: 'QR' },
+    { path: '/admin/unauthorized-attempts', icon: FaExclamationTriangle, label: 'المحاولات' },
+    { path: '/admin/settings', icon: FaCog, label: 'الإعدادات' },
   ];
 
   const menuItems = isAdmin ? adminMenuItems : userMenuItems;
@@ -69,7 +69,6 @@ function Sidebar({ isAdmin = false }) {
         {/* Logo */}
         <div className="sidebar-logo">
           <img src="/images/yly-logo.jpg" alt="YLY" />
-          <h2>YLY Platform</h2>
         </div>
 
         {/* Navigation */}
@@ -80,26 +79,14 @@ function Sidebar({ isAdmin = false }) {
               to={item.path}
               className={`sidebar-item ${isActive(item.path) ? 'sidebar-item-active' : ''}`}
               onClick={() => setIsOpen(false)}
+              title={item.label}
             >
               <item.icon className="sidebar-icon" />
               <span className="sidebar-label">{item.label}</span>
-              {item.badge && <span className="sidebar-badge">{item.badge}</span>}
             </Link>
           ))}
         </nav>
 
-        {/* User Info at Bottom */}
-        <div className="sidebar-footer">
-          <div className="sidebar-user">
-            <div className="sidebar-user-avatar">
-              <FaUser />
-            </div>
-            <div className="sidebar-user-info">
-              <div className="sidebar-user-name">Ahmed Mohamed</div>
-              <div className="sidebar-user-role">{isAdmin ? 'مسؤول' : 'عضو'}</div>
-            </div>
-          </div>
-        </div>
       </aside>
     </>
   );
