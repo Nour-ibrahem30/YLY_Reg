@@ -336,6 +336,33 @@ export const deleteUnauthorizedAttempt = async (attemptId) => {
 
     if (fetchError) {
       console.error('Error fetching attempt:', fetchError);
+      throw new Error(fetchError.message);
+    }
+
+    // Delete image from storage first if exists
+    if (attempt && attempt.image_url) {
+      try {
+        // Extract the file path from the full URL
+        // URL format: https://[project].supabase.co/storage/v1/object/public/face-recognition/unauthorized-attempts/filename.jpg
+        const url = new URL(attempt.image_url);
+        const pathParts = url.pathname.split('/');
+        // Find the index of 'face-recognition' and get everything after it
+        const bucketIndex = pathParts.indexOf('face-recognition');
+        if (bucketIndex !== -1) {
+          const filePath = pathParts.slice(bucketIndex + 1).join('/');
+          console.log('Deleting file from storage:', filePath);
+          
+          const { error: storageError } = await supabase.storage
+            .from('face-recognition')
+            .remove([filePath]);
+          
+          if (storageError) {
+            console.error('Storage deletion error:', storageError);
+          }
+        }
+      } catch (storageError) {
+        console.error('Error deleting image from storage:', storageError);
+      }
     }
 
     // Delete from database
@@ -346,21 +373,6 @@ export const deleteUnauthorizedAttempt = async (attemptId) => {
 
     if (deleteError) {
       throw new Error(deleteError.message);
-    }
-
-    // Delete image from storage if exists
-    if (attempt && attempt.image_url) {
-      try {
-        const urlParts = attempt.image_url.split('/');
-        const fileName = urlParts[urlParts.length - 1];
-        const filePath = `unauthorized-attempts/${fileName}`;
-
-        await supabase.storage
-          .from('face-recognition')
-          .remove([filePath]);
-      } catch (storageError) {
-        console.error('Error deleting image from storage:', storageError);
-      }
     }
 
     return { success: true };
@@ -384,6 +396,44 @@ export const deleteAllUnauthorizedAttempts = async () => {
 
     if (fetchError) {
       console.error('Error fetching attempts:', fetchError);
+      throw new Error(fetchError.message);
+    }
+
+    // Delete all images from storage first
+    if (attempts && attempts.length > 0) {
+      try {
+        const filePaths = attempts
+          .filter(a => a.image_url)
+          .map(a => {
+            try {
+              // Extract the file path from the full URL
+              const url = new URL(a.image_url);
+              const pathParts = url.pathname.split('/');
+              const bucketIndex = pathParts.indexOf('face-recognition');
+              if (bucketIndex !== -1) {
+                return pathParts.slice(bucketIndex + 1).join('/');
+              }
+              return null;
+            } catch (e) {
+              console.error('Error parsing URL:', e);
+              return null;
+            }
+          })
+          .filter(path => path !== null);
+
+        if (filePaths.length > 0) {
+          console.log('Deleting files from storage:', filePaths.length);
+          const { error: storageError } = await supabase.storage
+            .from('face-recognition')
+            .remove(filePaths);
+          
+          if (storageError) {
+            console.error('Storage deletion error:', storageError);
+          }
+        }
+      } catch (storageError) {
+        console.error('Error deleting images from storage:', storageError);
+      }
     }
 
     // Delete all from database
@@ -394,27 +444,6 @@ export const deleteAllUnauthorizedAttempts = async () => {
 
     if (deleteError) {
       throw new Error(deleteError.message);
-    }
-
-    // Delete all images from storage
-    if (attempts && attempts.length > 0) {
-      try {
-        const filePaths = attempts
-          .filter(a => a.image_url)
-          .map(a => {
-            const urlParts = a.image_url.split('/');
-            const fileName = urlParts[urlParts.length - 1];
-            return `unauthorized-attempts/${fileName}`;
-          });
-
-        if (filePaths.length > 0) {
-          await supabase.storage
-            .from('face-recognition')
-            .remove(filePaths);
-        }
-      } catch (storageError) {
-        console.error('Error deleting images from storage:', storageError);
-      }
     }
 
     return { success: true };
