@@ -440,7 +440,7 @@ export const deleteAllUnauthorizedAttempts = async () => {
     const { error: deleteError } = await supabase
       .from('unauthorized_access_attempts')
       .delete()
-      .neq('id', 0); // Delete all records
+      .gte('id', '00000000-0000-0000-0000-000000000000'); // Delete all records
 
     if (deleteError) {
       throw new Error(deleteError.message);
