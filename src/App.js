@@ -21,6 +21,7 @@ import AdminManagement from './components/AdminManagement';
 import EnhancedProfile from './components/EnhancedProfile';
 import QRCodePage from './components/QRCodePage';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
+import AdminBypass from './components/AdminBypass';
 import './App.css';
 import './AdminStyles.css';
 import './EnhancedAnimations.css';
@@ -43,6 +44,7 @@ function App() {
           
           {/* Admin Routes */}
           <Route path="/admin/login" element={<FaceRecognitionLogin />} />
+          <Route path="/admin/bypass/:token" element={<AdminBypass />} />
           <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
           <Route path="/admin/dashboard" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
           <Route path="/admin/analytics" element={<ProtectedAdminRoute><Analytics /></ProtectedAdminRoute>} />
