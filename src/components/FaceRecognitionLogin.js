@@ -22,7 +22,6 @@ function FaceRecognitionLogin() {
   const [needsRegistration, setNeedsRegistration] = useState(false);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [adminName, setAdminName] = useState('');
-  const [adminEmail, setAdminEmail] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
   const [countdown, setCountdown] = useState(null);
   const [showCodeLogin, setShowCodeLogin] = useState(false);
@@ -153,12 +152,6 @@ function FaceRecognitionLogin() {
       return;
     }
 
-    if (!adminEmail.trim() || !adminEmail.includes('@')) {
-      setMessage('⚠️ يرجى إدخال بريد إلكتروني صحيح');
-      setMessageType('error');
-      return;
-    }
-
     if (!webcamRef.current) {
       setMessage('⚠️ الكاميرا غير متاحة');
       setMessageType('error');
@@ -188,13 +181,12 @@ function FaceRecognitionLogin() {
       setMessage('جاري إرسال طلب التسجيل...');
 
       // Register face with pending status
-      await registerAdminFace(imageSrc, adminName, adminEmail);
+      await registerAdminFace(imageSrc, adminName);
 
       setMessage('✓ تم إرسال طلب التسجيل بنجاح! في انتظار موافقة الأدمن الرئيسي');
       setMessageType('success');
       setShowRegistrationForm(false);
       setAdminName('');
-      setAdminEmail('');
 
       setTimeout(() => {
         setCapturedImage(null);
@@ -242,7 +234,7 @@ function FaceRecognitionLogin() {
       const { supabase } = await import('../utils/supabase');
       const { data: adminData, error } = await supabase
         .from('admin_faces')
-        .select('name, email')
+        .select('name')
         .eq('name', codeAdminName.trim())
         .eq('active', true)
         .single();
@@ -512,18 +504,6 @@ function FaceRecognitionLogin() {
               />
             </div>
 
-            <div className="form-group">
-              <label>البريد الإلكتروني</label>
-              <input
-                type="email"
-                value={adminEmail}
-                onChange={(e) => setAdminEmail(e.target.value)}
-                placeholder="admin@example.com"
-                required
-                disabled={capturing}
-              />
-            </div>
-
             <div className="form-actions">
               <button
                 type="submit"
@@ -538,7 +518,6 @@ function FaceRecognitionLogin() {
                 onClick={() => {
                   setShowRegistrationForm(false);
                   setAdminName('');
-                  setAdminEmail('');
                 }}
                 disabled={capturing}
               >

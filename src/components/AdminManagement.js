@@ -30,7 +30,6 @@ function AdminManagement() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newAdminName, setNewAdminName] = useState('');
-  const [newAdminEmail, setNewAdminEmail] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
   const [capturing, setCapturing] = useState(false);
   const [countdown, setCountdown] = useState(null);
@@ -128,11 +127,6 @@ function AdminManagement() {
       return;
     }
 
-    if (!newAdminEmail.trim() || !newAdminEmail.includes('@')) {
-      setMessage({ type: 'error', text: 'يرجى إدخال بريد إلكتروني صحيح' });
-      return;
-    }
-
     if (!webcamRef.current) {
       setMessage({ type: 'error', text: 'الكاميرا غير متاحة' });
       return;
@@ -160,14 +154,13 @@ function AdminManagement() {
       setMessage({ type: 'info', text: 'جاري إضافة الأدمن...' });
 
       // Register face - will be approved automatically since admin is adding
-      await registerAdminFace(imageSrc, newAdminName, newAdminEmail);
+      await registerAdminFace(imageSrc, newAdminName);
 
       setMessage({ type: 'success', text: 'تم إضافة الأدمن بنجاح!' });
       
       // Reset form
       setShowAddModal(false);
       setNewAdminName('');
-      setNewAdminEmail('');
       setCapturedImage(null);
       setCapturing(false);
       
@@ -186,7 +179,6 @@ function AdminManagement() {
   const handleCancelAdd = () => {
     setShowAddModal(false);
     setNewAdminName('');
-    setNewAdminEmail('');
     setCapturedImage(null);
     setCapturing(false);
     setCountdown(null);
@@ -430,18 +422,6 @@ function AdminManagement() {
                       value={newAdminName}
                       onChange={(e) => setNewAdminName(e.target.value)}
                       placeholder="أدخل اسم الأدمن"
-                      required
-                      disabled={capturing}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>البريد الإلكتروني</label>
-                    <input
-                      type="email"
-                      value={newAdminEmail}
-                      onChange={(e) => setNewAdminEmail(e.target.value)}
-                      placeholder="admin@example.com"
                       required
                       disabled={capturing}
                     />

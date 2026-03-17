@@ -97,7 +97,7 @@ const uploadImageToStorage = async (imageDataUrl, folder) => {
 };
 
 // Register admin face
-export const registerAdminFace = async (imageDataUrl, adminName, adminEmail = '') => {
+export const registerAdminFace = async (imageDataUrl, adminName) => {
   try {
     if (!supabase) {
       throw new Error('Supabase غير مُعد بشكل صحيح');
@@ -118,7 +118,6 @@ export const registerAdminFace = async (imageDataUrl, adminName, adminEmail = ''
       .insert([
         {
           name: adminName,
-          email: adminEmail || null,
           descriptor: descriptor,
           image_url: uploadResult.url,
           uploaded_at: new Date().toISOString(),
