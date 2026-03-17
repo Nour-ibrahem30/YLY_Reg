@@ -171,7 +171,8 @@
 }
 
 .verify-btn,
-.register-btn {
+.register-btn,
+.code-login-btn {
   flex: 1;
   padding: 16px 24px;
   border: none;
@@ -209,25 +210,40 @@
   box-shadow: 0 8px 25px rgba(52, 211, 153, 0.4);
 }
 
+.code-login-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.code-login-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+}
+
 .verify-btn:disabled,
-.register-btn:disabled {
+.register-btn:disabled,
+.code-login-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
 .verify-btn svg,
-.register-btn svg {
+.register-btn svg,
+.code-login-btn svg {
   font-size: 20px;
 }
 
 /* Registration Form */
-.registration-form {
+.registration-form,
+.code-login-form {
   background: #1a1d29;
   padding: 24px;
   border-radius: 12px;
   margin-bottom: 24px;
   border: 1px solid #2d3748;
+}
 }
 
 .registration-form .form-group {
@@ -441,7 +457,8 @@
   }
 
   .verify-btn,
-  .register-btn {
+  .register-btn,
+  .code-login-btn {
     width: 100%;
   }
 }

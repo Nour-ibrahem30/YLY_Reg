@@ -25,6 +25,9 @@ function FaceRecognitionLogin() {
   const [adminEmail, setAdminEmail] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
   const [countdown, setCountdown] = useState(null);
+  const [showCodeLogin, setShowCodeLogin] = useState(false);
+  const [codeAdminName, setCodeAdminName] = useState('');
+  const [secretCode, setSecretCode] = useState('');
 
   useEffect(() => {
     initializeFaceRecognition();
@@ -207,6 +210,73 @@ function FaceRecognitionLogin() {
     }
   };
 
+  const handleCodeLogin = async (e) => {
+    e.preventDefault();
+    
+    if (!codeAdminName.trim()) {
+      setMessage('⚠️ يرجى إدخال اسم الأدمن');
+      setMessageType('error');
+      return;
+    }
+
+    if (!secretCode.trim()) {
+      setMessage('⚠️ يرجى إدخال الرمز السري');
+      setMessageType('error');
+      return;
+    }
+
+    try {
+      setCapturing(true);
+      setMessage('جاري التحقق من البيانات...');
+      setMessageType('info');
+
+      // Check if the secret code is correct
+      if (secretCode !== 'YLY_Admin') {
+        setMessage('✗ الرمز السري غير صحيح!');
+        setMessageType('error');
+        setCapturing(false);
+        return;
+      }
+
+      // Verify that the admin name exists in the database
+      const { supabase } = await import('../utils/supabase');
+      const { data: adminData, error } = await supabase
+        .from('admin_faces')
+        .select('name, email')
+        .eq('name', codeAdminName.trim())
+        .eq('active', true)
+        .single();
+
+      if (error || !adminData) {
+        setMessage('✗ اسم الأدمن غير موجود في قاعدة البيانات!');
+        setMessageType('error');
+        setCapturing(false);
+        return;
+      }
+
+      // Success - login with code
+      setMessage(`✓ مرحباً ${adminData.name} - جاري تسجيل الدخول...`);
+      setMessageType('success');
+
+      // Store session
+      sessionStorage.setItem('admin_face_session', JSON.stringify({
+        adminName: adminData.name,
+        authenticatedAt: new Date().toISOString(),
+        loginMethod: 'code'
+      }));
+
+      // Navigate to dashboard
+      setTimeout(() => {
+        navigate('/admin/dashboard');
+      }, 1500);
+    } catch (error) {
+      console.error('Code login error:', error);
+      setMessage('حدث خطأ أثناء تسجيل الدخول');
+      setMessageType('error');
+      setCapturing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="face-recognition-page">
@@ -304,38 +374,115 @@ function FaceRecognitionLogin() {
         </div>
 
         {/* Actions */}
-        {!showRegistrationForm ? (
+        {!showRegistrationForm && !showCodeLogin ? (
           <div className="face-actions">
             {needsRegistration ? (
-              <motion.button
-                className="register-btn"
-                onClick={() => setShowRegistrationForm(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                disabled={capturing}
-              >
-                <FaShieldAlt />
-                <span>تسجيل وجه الأدمن</span>
-              </motion.button>
+              <>
+                <motion.button
+                  className="register-btn"
+                  onClick={() => setShowRegistrationForm(true)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={capturing}
+                >
+                  <FaShieldAlt />
+                  <span>تسجيل وجه الأدمن</span>
+                </motion.button>
+                <motion.button
+                  className="code-login-btn"
+                  onClick={() => setShowCodeLogin(true)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={capturing}
+                >
+                  <FaShieldAlt />
+                  <span>الدخول بالرمز السري</span>
+                </motion.button>
+              </>
             ) : (
-              <motion.button
-                className="verify-btn"
-                onClick={captureAndVerify}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                disabled={capturing}
-              >
-                {capturing ? (
-                  <span className="spinner"></span>
-                ) : (
-                  <>
-                    <FaCamera />
-                    <span>التحقق من الوجه</span>
-                  </>
-                )}
-              </motion.button>
+              <>
+                <motion.button
+                  className="verify-btn"
+                  onClick={captureAndVerify}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={capturing}
+                >
+                  {capturing ? (
+                    <span className="spinner"></span>
+                  ) : (
+                    <>
+                      <FaCamera />
+                      <span>التحقق من الوجه</span>
+                    </>
+                  )}
+                </motion.button>
+                <motion.button
+                  className="code-login-btn"
+                  onClick={() => setShowCodeLogin(true)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={capturing}
+                >
+                  <FaShieldAlt />
+                  <span>الدخول بالرمز السري</span>
+                </motion.button>
+              </>
             )}
           </div>
+        ) : showCodeLogin ? (
+          <motion.form
+            className="code-login-form"
+            onSubmit={handleCodeLogin}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="form-group">
+              <label>اسم الأدمن</label>
+              <input
+                type="text"
+                value={codeAdminName}
+                onChange={(e) => setCodeAdminName(e.target.value)}
+                placeholder="أدخل اسم الأدمن المسجل"
+                required
+                disabled={capturing}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>الرمز السري</label>
+              <input
+                type="password"
+                value={secretCode}
+                onChange={(e) => setSecretCode(e.target.value)}
+                placeholder="أدخل الرمز السري"
+                required
+                disabled={capturing}
+              />
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="submit"
+                className="submit-btn"
+                disabled={capturing}
+              >
+                {capturing ? <span className="spinner"></span> : 'تسجيل الدخول'}
+              </button>
+              <button
+                type="button"
+                className="cancel-btn"
+                onClick={() => {
+                  setShowCodeLogin(false);
+                  setCodeAdminName('');
+                  setSecretCode('');
+                }}
+                disabled={capturing}
+              >
+                إلغاء
+              </button>
+            </div>
+          </motion.form>
         ) : (
           <motion.form
             className="registration-form"
