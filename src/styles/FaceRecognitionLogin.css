@@ -166,6 +166,7 @@
 /* Actions */
 .face-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -174,6 +175,7 @@
 .register-btn,
 .code-login-btn {
   flex: 1;
+  min-width: 200px;
   padding: 16px 24px;
   border: none;
   border-radius: 12px;

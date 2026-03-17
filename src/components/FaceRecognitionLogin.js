@@ -427,6 +427,16 @@ function FaceRecognitionLogin() {
                   <FaShieldAlt />
                   <span>الدخول بالرمز السري</span>
                 </motion.button>
+                <motion.button
+                  className="register-btn"
+                  onClick={() => setShowRegistrationForm(true)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={capturing}
+                >
+                  <FaShieldAlt />
+                  <span>طلب إضافة أدمن جديد</span>
+                </motion.button>
               </>
             )}
           </div>
